@@ -9,6 +9,9 @@ type GameInfo struct {
 	// The minimum number of players
 	MinPlayers int
 
+	// The version of this game
+	Version int
+
 	// The maximum number of players
 	MaxPlayers int
 
