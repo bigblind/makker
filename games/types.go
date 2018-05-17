@@ -1,6 +1,8 @@
 package games
 
-import "time"
+import (
+	"time"
+)
 
 type GameInfo struct {
 	// The name of the game
@@ -30,17 +32,39 @@ type PlayerState struct {
 	Score int32
 }
 
+type MetaState uint8
+
+const (
+	WaitingForPlayers MetaState = iota
+	InProgress
+	GameOver
+)
+
 type GameState struct {
 	Players []PlayerState
 	SharedState interface{}
 }
 
+type Move struct {
+	Player uint8
+	Data interface{}
+	Time time.Time
+}
 
 type Game interface {
 	Info() GameInfo
 
 	GetInitialStat(players []PlayerState)
-	HandleUpdate(g GameState) (GameState, error)
+	HandleUpdate(g GameState, m Move) (GameState, error)
 	CanPlayerMove(playerIndex int, g GameState) bool
 	IsGameOver(g GameState)
+}
+
+type GameInstance struct {
+	Id string
+	GameName string
+	GameVersion int
+	States GameState
+	Moves []Move
+	MetaState MetaState
 }
