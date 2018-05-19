@@ -94,10 +94,10 @@ func (i *GameInstance) AddPlayer(userId string) {
 }
 
 type GameStore interface{
-	SaveInstance(instance GameInstance) (GameInstance, error)
-	GetInstanceById(id string) (GameInstance, error)
-	GetInstancesByGame(gameName string) ([]GameInstance, error)
-	GetInstancesByGameVersion(game Game) ([]GameInstance, error)
-	DeleteGameInstance(instance GameInstance) error
+	SaveInstance(instance *GameInstance) (GameInstance, error)
+	GetInstanceById(id string) (*GameInstance, error)
+	GetInstancesByGame(gameName string) (*[]GameInstance, error)
+	GetInstancesByGameVersion(game Game) (*[]GameInstance, error)
+	DeleteGameInstance(instance *GameInstance) error
 }
 
