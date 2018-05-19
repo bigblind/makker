@@ -64,10 +64,33 @@ type GameInstance struct {
 	Id string
 	GameName string
 	GameVersion int
-	States GameState
+	State GameState
 	Moves []Move
 	MetaState MetaState
 	AdminUserId string
+}
+
+func NewInstance(g Game, adminUserId string) *GameInstance {
+	info := g.Info()
+	instance := GameInstance{
+		GameName: info.Name,
+		GameVersion: info.Version,
+		AdminUserId: adminUserId,
+
+		Moves: make([]Move, 2),
+		MetaState: WaitingForPlayers,
+		State: GameState{
+			Players: make([]PlayerState, 0, info.MaxPlayers),
+		},
+	}
+
+	return &instance
+}
+
+func (i *GameInstance) AddPlayer(userId string) {
+	i.State.Players = append(i.State.Players, PlayerState{
+		userId: userId,
+	})
 }
 
 type GameStore interface{
