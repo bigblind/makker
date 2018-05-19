@@ -84,14 +84,24 @@ func TestGameRegistry_GetGameLatestVersion(t *testing.T) {
 	gr := newRegistry()
 	g1 := makeGame("myGame", 1)
 	g2 := makeGame("myGame", 2)
+	g3 := makeGame("mySecondGame", 1)
+	g4 := makeGame("mySecondGame", 2)
+
 
 	gr.Register(g1)
 	gr.Register(g2)
+	// Make sure that the latest version is also returned when games are registered in reverse order
+	gr.Register(g4)
+	gr.Register(g3)
 
 	res1, e1 := gr.GetGameLatestVersion("myGame")
 	req.NoError(e1)
 	req.Equal(g2, res1)
 
-	_, e2 := gr.GetGameLatestVersion("doesNotExist")
-	req.Error(e2)
+	res2, e2 := gr.GetGameLatestVersion("mySecondGame")
+	req.NoError(e2)
+	req.Equal(g4, res2)
+
+	_, e3 := gr.GetGameLatestVersion("doesNotExist")
+	req.Error(e3)
 }
