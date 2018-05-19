@@ -70,5 +70,25 @@ func TestGamesInteractor_CreateInstance(t *testing.T) {
 	_, err = int.CreateInstance("myGame", "oo")
 	mgs.AssertExpectations(t)
 	req.Error(err, "Should return an error when the GameStore returns an error")
+}
 
+func TestGamesInteractor_JoinGame(t *testing.T) {
+	req := require.New(t)
+	int, mgs := createInteractor()
+	g := makeGame("", 1)
+	inst := NewInstance(g, "adminId")
+	mgs.On("GetInstanceById", "instanceId").Return(inst, nil).Once()
+	mgs.On("SaveInstance", inst).Return(nil).Once()
+
+	err := int.JoinGame("instanceId", "userId")
+
+	mgs.AssertExpectations(t)
+	req.NoError(err)
+	req.Equal("userId", inst.State.Players[0].userId)
+
+	// Don't allow the same user to join a game twice
+	mgs.On("GetInstanceById", "instanceId").Return(inst, nil).Once()
+
+	err = int.JoinGame("instanceId", "userId")
+	req.Error(err, "The user should not be able to join the same game twice.")
 }

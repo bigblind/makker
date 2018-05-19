@@ -1,5 +1,7 @@
 package games
 
+import "fmt"
+
 type GamesInteractor struct {
 	store GameStore
 }
@@ -15,4 +17,19 @@ func (inter GamesInteractor) CreateInstance(gameName, userId string) (GameInstan
 	inst.AddPlayer(userId)
 	err = inter.store.SaveInstance(inst)
 	return *inst, err
+}
+
+func (inter GamesInteractor) JoinGame(instanceId, userId string) error {
+	inst, err := inter.store.GetInstanceById(instanceId)
+	if err != nil {
+		return err
+	}
+
+	if inst.HasPlayer(userId) {
+		return fmt.Errorf("%v is already in the game.", userId)
+	}
+
+	inst.AddPlayer(userId)
+
+	return inter.store.SaveInstance(inst)
 }

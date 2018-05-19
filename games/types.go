@@ -93,6 +93,16 @@ func (i *GameInstance) AddPlayer(userId string) {
 	})
 }
 
+func (i *GameInstance) HasPlayer(userId string) bool {
+	for _, p := range i.State.Players {
+		if p.userId == userId {
+			return true
+		}
+	}
+
+	return false
+}
+
 type GameStore interface{
 	SaveInstance(instance *GameInstance) error
 	GetInstanceById(id string) (*GameInstance, error)
