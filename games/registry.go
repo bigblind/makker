@@ -6,6 +6,7 @@ type gameVersions map[int]Game
 
 type gameRegistry struct {
 	games map[string]gameVersions
+	latestVersion map[string]*Game
 }
 
 func (gr *gameRegistry) Register(g Game) {
@@ -15,6 +16,10 @@ func (gr *gameRegistry) Register(g Game) {
 	}
 
 	gr.games[i.Name][i.Version] = g
+
+	if latestGame, ok := gr.latestVersion[i.Name]; !ok || (*latestGame).Info().Version < i.Version {
+		gr.latestVersion[i.Name] = &g
+	}
 }
 
 func (gr *gameRegistry) GetGame(name string, version int) (Game, error) {
@@ -29,8 +34,19 @@ func (gr *gameRegistry) GetGame(name string, version int) (Game, error) {
 	return nil, fmt.Errorf("game %v not found", name)
 }
 
+func (gr *gameRegistry) GetGameLatestVersion(name string) (Game, error) {
+	if g, ok := gr.latestVersion[name]; ok {
+		return *g, nil
+	}
+
+	return nil, fmt.Errorf("No game with name %v found.", name)
+}
+
 func newRegistry() *gameRegistry {
-	gr := gameRegistry{games: make(map[string]gameVersions)}
+	gr := gameRegistry{
+			games: make(map[string]gameVersions),
+			latestVersion: make(map[string]*Game),
+		}
 	return &gr
 }
 

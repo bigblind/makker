@@ -14,7 +14,7 @@ func (tg testGame) GetInitialStat(players []PlayerState) {
 	panic("implement me")
 }
 
-func (tg testGame) HandleUpdate(g GameState) (GameState, error) {
+func (tg testGame) HandleUpdate(g GameState, m Move) (GameState, error) {
 	panic("implement me")
 }
 
@@ -77,4 +77,21 @@ func TestGameRegistry_GetGame(t *testing.T) {
 
 	_, e5 := gr.GetGame("myGame", 2)
 	req.Error(e5, "The game's version does not exist")
+}
+
+func TestGameRegistry_GetGameLatestVersion(t *testing.T) {
+	req := require.New(t)
+	gr := newRegistry()
+	g1 := makeGame("myGame", 1)
+	g2 := makeGame("myGame", 2)
+
+	gr.Register(g1)
+	gr.Register(g2)
+
+	res1, e1 := gr.GetGameLatestVersion("myGame")
+	req.NoError(e1)
+	req.Equal(g2, res1)
+
+	_, e2 := gr.GetGameLatestVersion("doesNotExist")
+	req.Error(e2)
 }
