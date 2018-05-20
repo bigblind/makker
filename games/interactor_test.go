@@ -1,38 +1,38 @@
 package games
 
 import (
-	"github.com/stretchr/testify/mock"
-	"testing"
-	"github.com/stretchr/testify/require"
 	"fmt"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
+	"testing"
 )
 
 type MockGamesStore struct {
-		mock.Mock
+	mock.Mock
 }
 
 func (mgs MockGamesStore) SaveInstance(instance *GameInstance) error {
-	args :=mgs.Called(instance)
+	args := mgs.Called(instance)
 	return args.Error(0)
 }
 
 func (mgs MockGamesStore) GetInstanceById(id string) (*GameInstance, error) {
-	args :=mgs.Called(id)
+	args := mgs.Called(id)
 	return args.Get(0).(*GameInstance), args.Error(1)
 }
 
 func (mgs MockGamesStore) GetInstancesByGame(gameName string) (*[]GameInstance, error) {
-	args :=mgs.Called(gameName)
+	args := mgs.Called(gameName)
 	return args.Get(0).(*[]GameInstance), args.Error(1)
 }
 
 func (mgs MockGamesStore) GetInstancesByGameVersion(game Game) (*[]GameInstance, error) {
-	args :=mgs.Called(game)
+	args := mgs.Called(game)
 	return args.Get(0).(*[]GameInstance), args.Error(1)
 }
 
 func (mgs MockGamesStore) DeleteGameInstance(instance *GameInstance) error {
-	args :=mgs.Called(instance)
+	args := mgs.Called(instance)
 	return args.Error(0)
 }
 

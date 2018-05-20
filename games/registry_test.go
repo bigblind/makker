@@ -32,11 +32,10 @@ func (tg testGame) Info() GameInfo {
 
 func makeGame(name string, version int) testGame {
 	return testGame{info: GameInfo{
-		Name: name,
+		Name:    name,
 		Version: version,
 	}}
 }
-
 
 func TestGameRegistry_Register(t *testing.T) {
 	gr := newRegistry()
@@ -86,7 +85,6 @@ func TestGameRegistry_GetGameLatestVersion(t *testing.T) {
 	g2 := makeGame("myGame", 2)
 	g3 := makeGame("mySecondGame", 1)
 	g4 := makeGame("mySecondGame", 2)
-
 
 	gr.Register(g1)
 	gr.Register(g2)

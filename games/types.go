@@ -1,8 +1,8 @@
 package games
 
 import (
-	"time"
 	"math/rand"
+	"time"
 )
 
 type GameInfo struct {
@@ -29,8 +29,8 @@ type PlayerState struct {
 	userId string
 
 	PrivateState interface{}
-	PublicState interface{}
-	Score int32
+	PublicState  interface{}
+	Score        int32
 }
 
 type MetaState uint8
@@ -42,14 +42,14 @@ const (
 )
 
 type GameState struct {
-	Players []PlayerState
+	Players     []PlayerState
 	SharedState interface{}
 }
 
 type Move struct {
 	Player uint8
-	Data interface{}
-	Time time.Time
+	Data   interface{}
+	Time   time.Time
 }
 
 type Game interface {
@@ -62,23 +62,23 @@ type Game interface {
 }
 
 type GameInstance struct {
-	Id string
-	GameName string
+	Id          string
+	GameName    string
 	GameVersion int
-	State GameState
-	Moves []Move
-	MetaState MetaState
+	State       GameState
+	Moves       []Move
+	MetaState   MetaState
 	AdminUserId string
 }
 
 func NewInstance(g Game, adminUserId string) *GameInstance {
 	info := g.Info()
 	instance := GameInstance{
-		GameName: info.Name,
+		GameName:    info.Name,
 		GameVersion: info.Version,
 		AdminUserId: adminUserId,
 
-		Moves: make([]Move, 2),
+		Moves:     make([]Move, 2),
 		MetaState: WaitingForPlayers,
 		State: GameState{
 			Players: make([]PlayerState, 0, info.MaxPlayers),
@@ -109,16 +109,15 @@ func (i *GameInstance) ShufflePlayers() {
 	p := i.State.Players
 	n := len(p)
 	for j := 0; j < n; j++ {
-		k := j + rand.Intn(n - j)
+		k := j + rand.Intn(n-j)
 		p[j], p[k] = p[k], p[j]
 	}
 }
 
-type GameStore interface{
+type GameStore interface {
 	SaveInstance(instance *GameInstance) error
 	GetInstanceById(id string) (*GameInstance, error)
 	GetInstancesByGame(gameName string) (*[]GameInstance, error)
 	GetInstancesByGameVersion(game Game) (*[]GameInstance, error)
 	DeleteGameInstance(instance *GameInstance) error
 }
-

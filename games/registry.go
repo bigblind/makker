@@ -5,7 +5,7 @@ import "fmt"
 type gameVersions map[int]Game
 
 type gameRegistry struct {
-	games map[string]gameVersions
+	games         map[string]gameVersions
 	latestVersion map[string]*Game
 }
 
@@ -44,9 +44,9 @@ func (gr *gameRegistry) GetGameLatestVersion(name string) (Game, error) {
 
 func newRegistry() *gameRegistry {
 	gr := gameRegistry{
-			games: make(map[string]gameVersions),
-			latestVersion: make(map[string]*Game),
-		}
+		games:         make(map[string]gameVersions),
+		latestVersion: make(map[string]*Game),
+	}
 	return &gr
 }
 
