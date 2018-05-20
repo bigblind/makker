@@ -2,6 +2,7 @@ package games
 
 import (
 	"time"
+	"math/rand"
 )
 
 type GameInfo struct {
@@ -101,6 +102,16 @@ func (i *GameInstance) HasPlayer(userId string) bool {
 	}
 
 	return false
+}
+
+// ShufflePlayers randomly reorders the players, so they're not playing in the order they joined
+func (i *GameInstance) ShufflePlayers() {
+	p := i.State.Players
+	n := len(p)
+	for j := 0; j < n; j++ {
+		k := j + rand.Intn(n - j)
+		p[j], p[k] = p[k], p[j]
+	}
 }
 
 type GameStore interface{

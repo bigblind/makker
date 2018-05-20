@@ -33,3 +33,19 @@ func (inter GamesInteractor) JoinGame(instanceId, userId string) error {
 
 	return inter.store.SaveInstance(inst)
 }
+
+func (inter GamesInteractor) StartGame(instanceId, userId string) error {
+	inst, err := inter.store.GetInstanceById(instanceId)
+	if err != nil {
+		return err
+	}
+
+	if inst.AdminUserId != userId {
+		return fmt.Errorf("you're not the admin of this game")
+	}
+
+	inst.ShufflePlayers()
+	inst.MetaState = InProgress
+
+	return inter.store.SaveInstance(inst)
+}
