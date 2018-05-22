@@ -4,26 +4,30 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/mock"
 )
 
 type testGame struct {
 	info GameInfo
+	mock.Mock
 }
 
-func (tg testGame) GetInitialStat(players []PlayerState) {
-	panic("implement me")
+func (tg testGame) InitializeState(state *GameState) {
+	tg.Called(state)
 }
 
-func (tg testGame) HandleUpdate(g GameState, m Move) (GameState, error) {
-	panic("implement me")
+func (tg testGame) HandleUpdate(g *GameState, m Move) error {
+	args := tg.Called(g, m)
+	return args.Error(0)
 }
 
-func (tg testGame) CanPlayerMove(playerIndex int, g GameState) bool {
-	panic("implement me")
+func (tg testGame) CanPlayerMove(playerIndex int, g *GameState) bool {
+	args := tg.Called(playerIndex, g)
+	return args.Bool(0)
 }
 
-func (tg testGame) IsGameOver(g GameState) {
-	panic("implement me")
+func (tg testGame) IsGameOver(g *GameState) {
+	tg.Called(g)
 }
 
 func (tg testGame) Info() GameInfo {

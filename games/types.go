@@ -26,7 +26,7 @@ type GameInfo struct {
 }
 
 type PlayerState struct {
-	userId string
+	UserId string
 
 	PrivateState interface{}
 	PublicState  interface{}
@@ -55,10 +55,10 @@ type Move struct {
 type Game interface {
 	Info() GameInfo
 
-	GetInitialStat(players []PlayerState)
-	HandleUpdate(g GameState, m Move) (GameState, error)
-	CanPlayerMove(playerIndex int, g GameState) bool
-	IsGameOver(g GameState)
+	InitializeState(state *GameState)
+	HandleUpdate(g *GameState, m Move) (error)
+	CanPlayerMove(playerIndex int, g *GameState) bool
+	IsGameOver(g *GameState)
 }
 
 type GameInstance struct {
@@ -88,20 +88,32 @@ func NewInstance(g Game, adminUserId string) *GameInstance {
 	return &instance
 }
 
+func (i *GameInstance) Game() Game {
+	g, err := Registry.GetGame(i.GameName, i.GameVersion)
+	if err != nil {
+		panic(err)
+	}
+	return g
+}
+
 func (i *GameInstance) AddPlayer(userId string) {
 	i.State.Players = append(i.State.Players, PlayerState{
-		userId: userId,
+		UserId: userId,
 	})
 }
 
 func (i *GameInstance) HasPlayer(userId string) bool {
-	for _, p := range i.State.Players {
-		if p.userId == userId {
-			return true
+	return i.GetPlayerIndex(userId) >= 0
+}
+
+func (i *GameInstance) GetPlayerIndex(userId string) int16 {
+	for i, p := range i.State.Players {
+		if p.UserId == userId {
+			return int16(i)
 		}
 	}
 
-	return false
+	return -1
 }
 
 // ShufflePlayers randomly reorders the players, so they're not playing in the order they joined
