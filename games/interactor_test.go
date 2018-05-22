@@ -125,7 +125,6 @@ func TestGamesInteractor_GetInstance(t *testing.T) {
 		inst.State.Players[i].PublicState = "public"
 	}
 	inst.MetaState = InProgress
-	fmt.Println(inst)
 	mgs.On("GetInstanceById", "instanceId").Return(inst, nil)
 
 	inst2, err := int.GetInstance("instanceId", "player2")
@@ -135,7 +134,6 @@ func TestGamesInteractor_GetInstance(t *testing.T) {
 
 	ids := make([]string, 3)
 	for i, p := range inst2.State.Players {
-		fmt.Println(p)
 		ids[i] = p.UserId
 		req.Equal("public", p.PublicState)
 		if p.UserId == "player2" {
@@ -147,4 +145,31 @@ func TestGamesInteractor_GetInstance(t *testing.T) {
 		mgs.AssertExpectations(t)
 	}
 	req.Equal([]string{"player2", "player3", "player1"}, ids)
+}
+
+func TestGamesInteractor_MakeMove(t *testing.T) {
+	req := require.New(t)
+	int, mgs := createInteractor()
+	g := makeGame("myGame", 1)
+	inst := NewInstance(g, "adminId")
+	inst.AddPlayer("player1")
+	inst.AddPlayer("player2")
+
+	mgs.On("GetInstanceById", "instanceId").Return(inst, nil)
+	mgs.On("SaveInstance", inst).Return(nil)
+	var move Move
+	g.On("HandleUpdate", &inst.State, mock.AnythingOfType("games.Move")).Run(func(args mock.Arguments) {
+		move = args.Get(1).(Move)
+		req.Equal(uint8(1), move.Player)
+		req.Equal("MoveData", move.Data)
+	}).Return(nil)
+	g.On("CanPlayerMove", 1, &inst.State).Return(true)
+	g.On("IsGameOver", &inst.State).Return((true))
+	Registry.Register(g)
+
+	inst2, err := int.MakeMove("instanceId", "player2", "MoveData")
+	req.NoError(err)
+	req.Equal(move, inst2.Moves[len(inst.Moves) - 1])
+	g.AssertExpectations(t)
+	mgs.AssertExpectations(t)
 }

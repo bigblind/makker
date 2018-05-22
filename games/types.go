@@ -58,7 +58,7 @@ type Game interface {
 	InitializeState(state *GameState)
 	HandleUpdate(g *GameState, m Move) (error)
 	CanPlayerMove(playerIndex int, g *GameState) bool
-	IsGameOver(g *GameState)
+	IsGameOver(g *GameState) bool
 }
 
 type GameInstance struct {

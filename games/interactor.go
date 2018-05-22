@@ -1,6 +1,9 @@
 package games
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
 type GamesInteractor struct {
 	store GameStore
@@ -64,6 +67,49 @@ func (inter GamesInteractor) GetInstance(instanceId, userId string) (GameInstanc
 
 	return transformInstanceForPlayer(*inst, userId)
 }
+
+func (inter GamesInteractor) MakeMove(instanceId, userId string, moveData interface{}) (GameInstance, error) {
+	inst, err := inter.store.GetInstanceById(instanceId)
+	if err != nil {
+		return *inst, err
+	}
+
+	idx := inst.GetPlayerIndex(userId)
+	if idx < 0 {
+		return *inst, fmt.Errorf("you're not in this game.")
+	}
+
+	game := inst.Game()
+
+	if !game.CanPlayerMove(int(idx), &inst.State) {
+		return *inst, fmt.Errorf("you can't make a move right now")
+	}
+
+	move := Move{
+		Data: moveData,
+		Player: uint8(idx),
+		Time: time.Now(),
+	}
+
+	err = game.HandleUpdate(&inst.State, move)
+	if err != nil {
+		return *inst, err
+	}
+
+	inst.Moves = append(inst.Moves, move)
+
+	if game.IsGameOver(&inst.State) {
+		inst.MetaState = GameOver
+	}
+
+	err = inter.store.SaveInstance(inst)
+	if err != nil {
+		return *inst, err
+	}
+
+	return transformInstanceForPlayer(*inst, userId)
+}
+
 
 func transformInstanceForPlayer(inst GameInstance, userId string) (GameInstance, error) {
 	idx := int(inst.GetPlayerIndex(userId))

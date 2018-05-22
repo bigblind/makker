@@ -26,8 +26,9 @@ func (tg testGame) CanPlayerMove(playerIndex int, g *GameState) bool {
 	return args.Bool(0)
 }
 
-func (tg testGame) IsGameOver(g *GameState) {
-	tg.Called(g)
+func (tg testGame) IsGameOver(g *GameState) bool {
+	args := tg.Called(g)
+	return args.Bool(0)
 }
 
 func (tg testGame) Info() GameInfo {
