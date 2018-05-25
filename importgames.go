@@ -1,5 +1,5 @@
 package makker
 
 import (
-	_ "github.com/bigblind/makker/games/kamisado"
+	_ "github.com/bigblind/makker/games/wordsplash"
 )
