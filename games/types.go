@@ -96,18 +96,22 @@ func (i *GameInstance) Game() Game {
 	return g
 }
 
-func (i *GameInstance) AddPlayer(userId string) {
-	i.State.Players = append(i.State.Players, PlayerState{
+func (gs *GameState) AddPlayer(userId string) {
+	gs.Players = append(gs.Players, PlayerState{
 		UserId: userId,
 	})
 }
 
-func (i *GameInstance) HasPlayer(userId string) bool {
-	return i.GetPlayerIndex(userId) >= 0
+func (i *GameInstance) AddPlayer(userId string) {i.State.AddPlayer(userId)}
+
+func (gs *GameState) HasPlayer(userId string) bool {
+	return gs.GetPlayerIndex(userId) >= 0
 }
 
-func (i *GameInstance) GetPlayerIndex(userId string) int16 {
-	for i, p := range i.State.Players {
+func (i *GameInstance) HasPlayer(userId string) bool {return i.State.HasPlayer(userId)}
+
+func (gs *GameState) GetPlayerIndex(userId string) int16 {
+	for i, p := range gs.Players {
 		if p.UserId == userId {
 			return int16(i)
 		}
@@ -115,6 +119,8 @@ func (i *GameInstance) GetPlayerIndex(userId string) int16 {
 
 	return -1
 }
+
+func (i *GameInstance) GetPlayerIndex(userId string) int16 {return i.State.GetPlayerIndex(userId)}
 
 // ShufflePlayers randomly reorders the players, so they're not playing in the order they joined
 func (i *GameInstance) ShufflePlayers() {
