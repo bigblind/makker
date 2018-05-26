@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"github.com/gorilla/mux"
 	"github.com/bigblind/makker/handler_helpers"
+	"github.com/bigblind/makker/users"
 )
 
 func GetRouter() *mux.Router {
@@ -14,6 +15,7 @@ func GetRouter() *mux.Router {
 		})
 	})
 
+	r.Use(users.UserIDMiddleware)
 
 	return r
 }
