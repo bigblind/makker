@@ -8,6 +8,8 @@ import (
 )
 
 func init() {
-	http.Handle("/", makker.GetRouter())
+	r := makker.GetRouter()
+	r.Use(contextMiddleware)
+	http.Handle("/", r)
 	appengine.Main()
 }
