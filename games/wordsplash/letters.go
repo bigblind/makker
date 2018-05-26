@@ -40,11 +40,11 @@ var vowels = map[string]float64{
 
 func addLetter(current, action string) string {
 	if action == "v" {
-		current = addLetter(current, vowels)
+		current = addLetterFromSet(current, vowels)
 	}
 
 	if action == "c" {
-		current = addLetter(current, consonants)
+		current = addLetterFromSet(current, consonants)
 	}
 
 	if action == "f" {
@@ -54,7 +54,7 @@ func addLetter(current, action string) string {
 			} else {
 				action = "v"
 			}
-			current = AddLetter(current, action)
+			current = addLetter(current, action)
 		}
 	}
 

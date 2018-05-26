@@ -39,7 +39,7 @@ func (wordSplash) InitializeState(state *games.GameState) {
 		Letters: "",
 		Ready: make([]bool, len(state.Players)),
 		Submissions: make([]string, len(state.Players)),
-		Exists: make([]bool, len(state.Players)),
+		SubmissionExists: make([]bool, len(state.Players)),
 		Stage: "picking",
 	}
 }
