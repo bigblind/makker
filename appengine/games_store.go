@@ -12,7 +12,7 @@ type gameInstanceEntity struct {
 	MetaState int8
 	GameName string
 	GameVersion int
-	Moves []games.Move `datastore:",noindex"`
+	Moves []games.Move `datastore:",noinnnnnnnnnnnnnnnndex"`
 	State interface{} `datastore:",noindex"`
 	AdminUserId string
 }
@@ -44,15 +44,15 @@ func (ent *gameInstanceEntity) toInstance(key *datastore.Key) *games.GameInstanc
 	return &i
 }
 
-type AppEngineGameStore struct {
+type appEngineGameStore struct {
 	ctx context.Context
 }
 
 func NewGameStore(ctx context.Context) games.GameStore {
-	return AppEngineGameStore{ctx}
+	return appEngineGameStore{ctx}
 }
 
-func (gs AppEngineGameStore) SaveInstance(instance *games.GameInstance) error {
+func (gs appEngineGameStore) SaveInstance(instance *games.GameInstance) error {
 	ent := entityFromInstance(instance)
 
 	var key *datastore.Key
@@ -75,7 +75,7 @@ func (gs AppEngineGameStore) SaveInstance(instance *games.GameInstance) error {
 	return nil
 }
 
-func (gs AppEngineGameStore) GetInstanceById(id string) (*games.GameInstance, error) {
+func (gs appEngineGameStore) GetInstanceById(id string) (*games.GameInstance, error) {
 	key, err := datastore.DecodeKey(id)
 	if err != nil {
 		return nil, err
@@ -90,7 +90,7 @@ func (gs AppEngineGameStore) GetInstanceById(id string) (*games.GameInstance, er
 	return ent.toInstance(key), nil
 }
 
-func (gs AppEngineGameStore) GetInstancesByGame(gameName string) (*[]games.GameInstance, error) {
+func (gs appEngineGameStore) GetInstancesByGame(gameName string) (*[]games.GameInstance, error) {
 	q := datastore.NewQuery(gameInstanceKind)
 	q = q.Filter("GameName =", gameName)
 	q = q.Filter("MetaState =", games.WaitingForPlayers)
@@ -109,7 +109,7 @@ func (gs AppEngineGameStore) GetInstancesByGame(gameName string) (*[]games.GameI
 	return &insts, nil
 }
 
-func (gs AppEngineGameStore) GetInstancesByGameVersion(game games.Game) (*[]games.GameInstance, error) {
+func (gs appEngineGameStore) GetInstancesByGameVersion(game games.Game) (*[]games.GameInstance, error) {
 	q := datastore.NewQuery(gameInstanceKind)
 	inf := game.Info()
 	q = q.Filter("GameName =", inf.Name)
@@ -130,7 +130,7 @@ func (gs AppEngineGameStore) GetInstancesByGameVersion(game games.Game) (*[]game
 	return &insts, nil
 }
 
-func (gs AppEngineGameStore) DeleteGameInstance(instance *games.GameInstance) error {
+func (gs appEngineGameStore) DeleteGameInstance(instance *games.GameInstance) error {
 	key, err := datastore.DecodeKey(instance.Id)
 	if err != nil {
 		return err
