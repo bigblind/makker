@@ -10,28 +10,24 @@ import (
 	"github.com/bigblind/makker/handler_helpers"
 )
 
-type userIdHandler struct {
-	wrappedHandler http.Handler
-}
+
 
 var store = sessions.NewCookieStore(config.Secret)
 
-func (h userIdHandler) ServeHTTP (w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "auth")
+func UserIdMiddleware (next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		session, _ := store.Get(r, "auth")
 
-	_, ok := session.Values["userId"]
-	if !ok {
-		session.Values["userId"] = fmt.Sprintf("guest_player%v", rand.Int())
-	}
+		_, ok := session.Values["userId"]
+		if !ok {
+			session.Values["userId"] = fmt.Sprintf("guest_player%v", rand.Int())
+		}
+		session.Save(r, w)
 
-	h.wrappedHandler.ServeHTTP(w, r)
-
-	session.Save(r, w)
+		next.ServeHTTP(w, r)
+	})
 }
 
-func UserIDMiddleware(handler http.Handler) http.Handler {
-	return userIdHandler{handler}
-}
 
 func GetUserId(r *http.Request) string {
 	session, _ := store.Get(r, "auth")
