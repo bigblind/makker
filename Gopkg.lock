@@ -26,10 +26,22 @@
   version = "v1.6.2"
 
 [[projects]]
-  branch = "master"
-  name = "github.com/mitchellh/mapstructure"
+  name = "github.com/gorilla/securecookie"
   packages = ["."]
-  revision = "bb74f1db0675b241733089d5a1faa5dd8b0ef57b"
+  revision = "e59506cc896acb7f7bf732d4fdf5e25f7ccd8983"
+  version = "v1.1.1"
+
+[[projects]]
+  name = "github.com/gorilla/sessions"
+  packages = ["."]
+  revision = "ca9ada44574153444b00d3fd9c8559e4cc95f896"
+  version = "v1.1"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/karlkfi/inject"
+  packages = ["."]
+  revision = "27c5323a07f81a37802552bb0734fc4bb649aaa1"
 
 [[projects]]
   name = "github.com/pmezard/go-difflib"
@@ -63,13 +75,15 @@
   name = "google.golang.org/appengine"
   packages = [
     ".",
+    "datastore",
     "internal",
     "internal/app_identity",
     "internal/base",
     "internal/datastore",
     "internal/log",
     "internal/modules",
-    "internal/remote_api"
+    "internal/remote_api",
+    "log"
   ]
   revision = "150dc57a1b433e64154302bdc40b6bb8aefa313a"
   version = "v1.0.0"
@@ -77,6 +91,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a347d93d58b26800213658a56421b7c66a9e8b99b45ca1a4dfaf7810e80bde13"
+  inputs-digest = "a41a0112874830415902737ecc4a921aaf7e3ce725adabe9d7de9eda61dc2c16"
   solver-name = "gps-cdcl"
   solver-version = 1

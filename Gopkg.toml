@@ -33,6 +33,6 @@
   name = "google.golang.org/appengine"
   version = "1.0.0"
 
-[[constraint]]
+[[override]]
   branch = "master"
   name = "github.com/mitchellh/mapstructure"
