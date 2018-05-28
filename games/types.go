@@ -3,6 +3,7 @@ package games
 import (
 	"math/rand"
 	"time"
+	"context"
 )
 
 type GameInfo struct {
@@ -33,7 +34,7 @@ type PlayerState struct {
 	Score        int32
 }
 
-type MetaState uint8
+type MetaState int8
 
 const (
 	WaitingForPlayers MetaState = iota
@@ -47,7 +48,7 @@ type GameState struct {
 }
 
 type Move struct {
-	Player uint8
+	Player int8
 	Data   interface{}
 	Time   time.Time
 }
@@ -139,3 +140,5 @@ type GameStore interface {
 	GetInstancesByGameVersion(game Game) (*[]GameInstance, error)
 	DeleteGameInstance(instance *GameInstance) error
 }
+
+type StoreConstructor func(ctx context.Context) GameStore

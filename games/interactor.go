@@ -87,7 +87,7 @@ func (inter GamesInteractor) MakeMove(instanceId, userId string, moveData interf
 
 	move := Move{
 		Data: moveData,
-		Player: uint8(idx),
+		Player: int8(idx),
 		Time: time.Now(),
 	}
 
