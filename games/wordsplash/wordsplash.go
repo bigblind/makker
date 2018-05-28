@@ -55,7 +55,7 @@ func (wordSplash) HandleUpdate(g *games.GameState, m games.Move) (error) {
 
 	if state.Stage == "picking" {
 		picker := state.Round % np
-		if m.Player != uint8(picker) {
+		if m.Player != int8(picker) {
 			return fmt.Errorf("you're not the picker")
 		}
 
