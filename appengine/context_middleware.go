@@ -2,19 +2,23 @@ package appengine
 
 import (
 	"net/http"
-	"google.golang.org/appengine"
+	"google.golang.org/appengine/log"
+	"runtime/debug"
 )
 
-type contextHandler struct {
-	wrapped http.Handler
-}
 
-func (ch contextHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	ctx := appengine.NewContext(r)
-	r = r.WithContext(ctx)
-	ch.wrapped.ServeHTTP(w, r)
-}
+func contextMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func (w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		debug.SetTraceback("all")
+		defer func() {
+			if rv := recover(); rv != nil {
+				log.Errorf(ctx, "Application panicnked!\n%v\n%s", rv, debug.Stack())
+			}
+		}()
 
-func contextMiddleware(h http.Handler) http.Handler {
-	return contextHandler{h}
+
+		r = r.WithContext(ctx)
+		next.ServeHTTP(w, r)
+	})
 }
