@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"fmt"
 	"math/rand"
-	"strings"
+	_ "strings"
 	"github.com/bigblind/makker/handler_helpers"
 )
 
@@ -48,6 +48,6 @@ type UserData struct {
 
 func MeHandler (w http.ResponseWriter, r *http.Request) {
 	id := GetUserId(r)
-	name := strings.Split(id, "_")[1]
+	name := id
 	handler_helpers.RespondWithJSON(w, 200, UserData{id, name})
 }
