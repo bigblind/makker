@@ -4,26 +4,53 @@ import (
 	"github.com/bigblind/makker/games"
 	"google.golang.org/appengine/datastore"
 	"context"
+	"encoding/gob"
+	"bytes"
 )
 
 const gameInstanceKind = "gameInstance"
+
+type PlayerEntity struct {
+	UserId string
+	Score int32  `datastore:",noindex"`
+	PrivateState []byte `datastore:",noindex"`
+	PublicState []byte `datastore:",noindex"`
+}
+
+type GameStateEntity struct{
+	Players []PlayerEntity
+	SharedState []byte
+}
+
 
 type gameInstanceEntity struct {
 	MetaState int8
 	GameName string
 	GameVersion int
-	Moves []games.Move `datastore:",noinnnnnnnnnnnnnnnndex"`
-	State interface{} `datastore:",noindex"`
+	Moves []byte `datastore:",noindex"`
+	State GameStateEntity
 	AdminUserId string
 }
 
 func entityFromInstance(i *games.GameInstance) *gameInstanceEntity {
+	players := make([]PlayerEntity, len(i.State.Players))
+	for i, p := range i.State.Players {
+		players[i] = PlayerEntity{
+			UserId: p.UserId,
+			Score: p.Score,
+			PrivateState: gobEncode(p.PrivateState),
+			PublicState: gobEncode(p.PublicState),
+		}
+	}
 	ent := gameInstanceEntity{
 		MetaState: int8(i.MetaState),
 		GameName: i.GameName,
 		GameVersion: i.GameVersion,
-		Moves: i.Moves,
-		State: i.State,
+		Moves: gobEncode(i.Moves),
+		State: GameStateEntity{
+			Players: players,
+			SharedState: gobEncode(i.State.SharedState),
+		},
 		AdminUserId: i.AdminUserId,
 	}
 
@@ -31,16 +58,27 @@ func entityFromInstance(i *games.GameInstance) *gameInstanceEntity {
 }
 
 func (ent *gameInstanceEntity) toInstance(key *datastore.Key) *games.GameInstance {
+	players := make([]games.PlayerState, len(ent.State.Players))
+	for i, p := range ent.State.Players {
+		players[i] = games.PlayerState{
+			UserId: p.UserId,
+			Score: p.Score,
+		}
+		gobDecode(&players[i].PrivateState, p.PrivateState)
+		gobDecode(&players[i].PublicState, p.PublicState)
+	}
 	i := games.GameInstance{
 		Id: key.Encode(),
 		GameName: ent.GameName,
 		GameVersion: ent.GameVersion,
-		Moves: ent.Moves,
-		State: ent.State.(games.GameState),
+		State: games.GameState{
+			Players: players,
+		},
 		AdminUserId: ent.AdminUserId,
 		MetaState: games.MetaState(ent.MetaState),
 	}
-
+	gobDecode(&i.Moves, ent.Moves)
+	gobDecode(&i.State.SharedState, ent.State.SharedState)
 	return &i
 }
 
@@ -137,5 +175,18 @@ func (gs appEngineGameStore) DeleteGameInstance(instance *games.GameInstance) er
 	}
 
 	return datastore.Delete(gs.ctx, key)
+}
+
+func gobEncode(v interface{}) []byte {
+	buf := bytes.NewBuffer(make([]byte, 0))
+	enc := gob.NewEncoder(buf)
+	enc.Encode(v)
+	return buf.Bytes()
+}
+
+func gobDecode(ptr interface{}, data []byte) error {
+	buf := bytes.NewBuffer(data)
+	dec := gob.NewDecoder(buf)
+	return dec.Decode(ptr)
 }
 
