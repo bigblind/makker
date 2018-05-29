@@ -54,7 +54,7 @@ func (inter GamesInteractor) StartGame(instanceId, userId string) error {
 	return inter.store.SaveInstance(inst)
 }
 
-func (inter GamesInteractor) GetInstance(instanceId, userId string) (GameInstance, error) {
+func (inter GamesInteractor) GetInstance(instanceId string) (GameInstance, error) {
 	inst, err := inter.store.GetInstanceById(instanceId)
 	if err != nil {
 		return GameInstance{}, nil
@@ -65,7 +65,7 @@ func (inter GamesInteractor) GetInstance(instanceId, userId string) (GameInstanc
 		return *inst, nil
 	}
 
-	return transformInstanceForPlayer(*inst, userId)
+	return *inst, err
 }
 
 func (inter GamesInteractor) MakeMove(instanceId, userId string, moveData interface{}) (GameInstance, error) {
@@ -107,7 +107,7 @@ func (inter GamesInteractor) MakeMove(instanceId, userId string, moveData interf
 		return *inst, err
 	}
 
-	return transformInstanceForPlayer(*inst, userId)
+	return *inst, nil
 }
 
 

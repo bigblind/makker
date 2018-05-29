@@ -120,31 +120,14 @@ func TestGamesInteractor_GetInstance(t *testing.T) {
 	inst.AddPlayer("player1")
 	inst.AddPlayer("player2")
 	inst.AddPlayer("player3")
-	for i, _ := range inst.State.Players {
-		inst.State.Players[i].PrivateState = "private"
-		inst.State.Players[i].PublicState = "public"
-	}
+
 	inst.MetaState = InProgress
 	mgs.On("GetInstanceById", "instanceId").Return(inst, nil)
 
-	inst2, err := int.GetInstance("instanceId", "player2")
+	inst2, err := int.GetInstance("instanceId")
 	req.NoError(err)
 	req.Equal("myGame", inst2.GameName)
 	req.Equal(1, inst2.GameVersion)
-
-	ids := make([]string, 3)
-	for i, p := range inst2.State.Players {
-		ids[i] = p.UserId
-		req.Equal("public", p.PublicState)
-		if p.UserId == "player2" {
-			req.Equal("private", p.PrivateState)
-		} else {
-			req.Nil(p.PrivateState)
-		}
-
-		mgs.AssertExpectations(t)
-	}
-	req.Equal([]string{"player2", "player3", "player1"}, ids)
 }
 
 func TestGamesInteractor_MakeMove(t *testing.T) {
