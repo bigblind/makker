@@ -143,7 +143,7 @@ func TestGamesInteractor_MakeMove(t *testing.T) {
 	var move Move
 	g.On("HandleUpdate", &inst.State, mock.AnythingOfType("games.Move")).Run(func(args mock.Arguments) {
 		move = args.Get(1).(Move)
-		req.Equal(uint8(1), move.Player)
+		req.Equal(int8(1), move.Player)
 		req.Equal("MoveData", move.Data)
 	}).Return(nil)
 	g.On("CanPlayerMove", 1, &inst.State).Return(true)
