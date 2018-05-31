@@ -6,6 +6,7 @@ import (
 )
 
 type Channel interface{
+	Public() bool
 	Namespace() string
 	Id() string
 	ClientId() string
@@ -14,11 +15,13 @@ type Channel interface{
 }
 
 type ChannelProvider interface {
-	NewChannel(namespace, id string) Channel
-	OnJoin(ctx context.Context, namespace string, handler func(channel Channel, userId, socketId string))
-	OnLeave(ctx context.Context, namespace string, handler func(channel Channel, userId, socketId string))
+	NewChannel(ctx context.Context, namespace, id string, public bool) Channel
+	OnJoin(namespace string, handler func(ctx context.Context, channel Channel, userId, socketId string))
+	OnLeave(namespace string, handler func(ctx context.Context, channel Channel, userId, socketId string))
 
 	HandleChannelAuth(w http.ResponseWriter, r *http.Request)
 	HadleWebHook(w http.ResponseWriter, r *http.Request)
 }
+
+type ProviderConstructor func(ctx context.Context) ChannelProvider
 

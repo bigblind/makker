@@ -38,16 +38,16 @@
   version = "v1.1"
 
 [[projects]]
-  branch = "master"
-  name = "github.com/karlkfi/inject"
-  packages = ["."]
-  revision = "27c5323a07f81a37802552bb0734fc4bb649aaa1"
-
-[[projects]]
   name = "github.com/pmezard/go-difflib"
   packages = ["difflib"]
   revision = "792786c7400a136282c1664665ae0a8db921c6c2"
   version = "v1.0.0"
+
+[[projects]]
+  name = "github.com/pusher/pusher-http-go"
+  packages = ["."]
+  revision = "ea13abeb083c60527a59138c8c5b906574b7cef2"
+  version = "v1.2.0"
 
 [[projects]]
   name = "github.com/stretchr/objx"
@@ -100,6 +100,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "eb5efb15b76bcb65857b5e48a499328c90c1ae07c7957af57394cbab8bd0c2dd"
+  inputs-digest = "05af1bb4bf8d067127109e5e4e33fca5eb6b4e081baa0a8b5b76c222df30bf76"
   solver-name = "gps-cdcl"
   solver-version = 1

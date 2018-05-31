@@ -7,6 +7,8 @@ import (
 	"github.com/bigblind/makker"
 	"github.com/bigblind/makker/games"
 	"github.com/bigblind/makker/di"
+	"github.com/bigblind/makker/channels"
+	"github.com/bigblind/makker/channels/pusher"
 )
 
 func init() {
@@ -24,4 +26,9 @@ func injectDeps() {
 	di.Graph.Provide(func() games.StoreConstructor {
 		return NewGameStore
 	})
+
+	di.Graph.Provide(func() channels.ProviderConstructor {
+		return pusher.NewChannelProvider
+	})
+
 }
