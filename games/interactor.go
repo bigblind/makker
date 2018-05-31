@@ -70,7 +70,7 @@ func (inter GamesInteractor) StartGame(instanceId, userId string) error {
 func (inter GamesInteractor) GetInstance(instanceId string) (GameInstance, error) {
 	inst, err := inter.store.GetInstanceById(instanceId)
 	if err != nil {
-		return GameInstance{}, nil
+		return GameInstance{}, err
 	}
 
 	// If the game isn't in progress, we can return it as-is
