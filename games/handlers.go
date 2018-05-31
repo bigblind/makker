@@ -25,6 +25,20 @@ func CreateInstace(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func GetInstance(w http.ResponseWriter, r *http.Request)  {
+	di.Graph.Invoke(func(constructor StoreConstructor, providerConstructor channels.ProviderConstructor) {
+		inter := NewInteractor(r.Context())
+
+		vars := mux.Vars(r)
+		inst, err := inter.GetInstance(vars["instanceId"])
+		if err != nil {
+			handler_helpers.RespondWithJSONError(w, 400, err)
+		} else {
+			handler_helpers.RespondWithJSON(w, 200, instancetoResponse(&inst, r, providerConstructor(r.Context())))
+		}
+	})
+}
+
 type instanceResponse struct{
 	*GameInstance
 	PublicChannel  string
