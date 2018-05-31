@@ -80,7 +80,7 @@ func NewInstance(g Game, adminUserId string) *GameInstance {
 		GameVersion: info.Version,
 		AdminUserId: adminUserId,
 
-		Moves:     make([]Move, 2),
+		Moves: make([]Move, 0),
 		MetaState: WaitingForPlayers,
 		State: GameState{
 			Players: make([]PlayerState, 0, info.MaxPlayers),
