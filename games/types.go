@@ -4,6 +4,7 @@ import (
 	"math/rand"
 	"time"
 	"context"
+	"fmt"
 )
 
 type GameInfo struct {
@@ -130,6 +131,17 @@ func (i *GameInstance) ShufflePlayers() {
 	for j := 0; j < n; j++ {
 		k := j + rand.Intn(n-j)
 		p[j], p[k] = p[k], p[j]
+	}
+}
+
+type InstanceChannels struct {
+	Public, Private string
+}
+
+func (i *GameInstance) Channels(userId string) InstanceChannels {
+	return InstanceChannels{
+		Public: i.Id,
+		Private: fmt.Sprintf("%v-%v", i.Id, userId),
 	}
 }
 
