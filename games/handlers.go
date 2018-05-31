@@ -10,8 +10,7 @@ import (
 
 func CreateInstace(w http.ResponseWriter, r *http.Request) {
 	di.Graph.Invoke(func(constructor StoreConstructor) {
-		store := constructor(r.Context())
-		inter := GamesInteractor{store}
+		inter := NewInteractor(r.Context())
 
 		uid := users.GetUserId(r)
 

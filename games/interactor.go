@@ -3,10 +3,23 @@ package games
 import (
 	"fmt"
 	"time"
+	"context"
+	"github.com/bigblind/makker/di"
 )
 
 type GamesInteractor struct {
 	store GameStore
+}
+
+func NewInteractor(ctx context.Context) GamesInteractor {
+	var inter GamesInteractor
+	di.Graph.Invoke(func(sc StoreConstructor) {
+		inter = GamesInteractor{
+			sc(ctx),
+		}
+	})
+
+	return inter
 }
 
 func (inter GamesInteractor) CreateInstance(gameName, userId string) (GameInstance, error) {
