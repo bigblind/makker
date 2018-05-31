@@ -10,7 +10,7 @@ import (
 )
 
 func CreateInstace(w http.ResponseWriter, r *http.Request) {
-	di.Graph.Invoke(func(constructor StoreConstructor, providerConstructor channels.ProviderConstructor) {
+	err := di.Graph.Invoke(func(constructor StoreConstructor, cp channels.ChannelProvider) {
 		inter := NewInteractor(r.Context())
 
 		uid := users.GetUserId(r)
@@ -20,13 +20,16 @@ func CreateInstace(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			handler_helpers.RespondWithJSONError(w, 400, err)
 		} else {
-			handler_helpers.RespondWithJSON(w, 200, instancetoResponse(&inst, r, providerConstructor(r.Context())))
+			handler_helpers.RespondWithJSON(w, 200, instancetoResponse(&inst, r, cp))
 		}
 	})
+	if err != nil {
+		handler_helpers.RespondWithJSONError(w, http.StatusInternalServerError, err)
+	}
 }
 
 func GetInstance(w http.ResponseWriter, r *http.Request)  {
-	di.Graph.Invoke(func(constructor StoreConstructor, providerConstructor channels.ProviderConstructor) {
+	err := di.Graph.Invoke(func(constructor StoreConstructor, cp channels.ChannelProvider) {
 		inter := NewInteractor(r.Context())
 
 		vars := mux.Vars(r)
@@ -34,9 +37,12 @@ func GetInstance(w http.ResponseWriter, r *http.Request)  {
 		if err != nil {
 			handler_helpers.RespondWithJSONError(w, 400, err)
 		} else {
-			handler_helpers.RespondWithJSON(w, 200, instancetoResponse(&inst, r, providerConstructor(r.Context())))
+			handler_helpers.RespondWithJSON(w, 200, instancetoResponse(&inst, r, cp))
 		}
 	})
+	if err != nil {
+		handler_helpers.RespondWithJSONError(w, http.StatusInternalServerError, err)
+	}
 }
 
 type instanceResponse struct{

@@ -15,6 +15,10 @@ import (
 	"net/url"
 )
 
+func init()  {
+	di.Graph.Provide(newChannelProvider)
+}
+
 type PusherProvider struct {
 	HttpClientConstructor func(ctx context.Context) *http.Client
 
@@ -30,16 +34,15 @@ type channelProviderParams struct {
 }
 
 
-func NewChannelProvider(ctx context.Context) channels.ChannelProvider {
+func newChannelProvider(params channelProviderParams) channels.ChannelProvider {
 	var pp PusherProvider
-	di.Graph.Invoke(func(params channelProviderParams) {
-		pp = PusherProvider{
-			HttpClientConstructor: params.ClientConstructor,
-			JoinListeners: make(map[string][]channels.EventHandler),
-			LeaveListeners: make(map[string][]channels.EventHandler),
-			UserCheckers: make(map[string]channels.ChannelAuthChecker),
-		}
-	})
+	pp = PusherProvider{
+		HttpClientConstructor: params.ClientConstructor,
+		JoinListeners: make(map[string][]channels.EventHandler),
+		LeaveListeners: make(map[string][]channels.EventHandler),
+		UserCheckers: make(map[string]channels.ChannelAuthChecker),
+	}
+
 	return pp
 }
 
@@ -189,5 +192,4 @@ func (pp PusherProvider) HadleWebHook(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 }
-
 
