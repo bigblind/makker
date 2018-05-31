@@ -30,8 +30,9 @@ func (pc *PusherChannel) ClientId() string {
 		prefix = "presence-"
 	}
 
-	return fmt.Sprintf("%v%v-v", prefix, pc.namespace, pc.id)
+	return fmt.Sprintf("%v%v-%v", prefix, pc.namespace, pc.id)
 }
+
 func (pc *PusherChannel) Emit(event string, data interface{}) {
 	pc.client.Trigger(pc.ClientId(), event, data)
 }
