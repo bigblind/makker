@@ -12,6 +12,7 @@ import (
 	"github.com/bigblind/makker/handler_helpers"
 	"github.com/bigblind/makker/users"
 	"strings"
+	"net/url"
 )
 
 type PusherProvider struct {
@@ -19,6 +20,7 @@ type PusherProvider struct {
 
 	JoinListeners map[string][]func(ctx context.Context, channel channels.Channel, userId, socketId string)
 	LeaveListeners map[string][]func(ctx context.Context, channel channels.Channel, userId, socketId string)
+	UserCheckers map[string]func(ctx context.Context, channel channels.Channel, userId string) error
 }
 
 type channelProviderParams struct {
@@ -35,6 +37,7 @@ func NewChannelProvider(ctx context.Context) channels.ChannelProvider {
 			HttpClientConstructor: params.ClientConstructor,
 			JoinListeners: make(map[string][]func(ctx context.Context, channel channels.Channel, userId, socketId string)),
 			LeaveListeners: make(map[string][]func(ctx context.Context, channel channels.Channel, userId, socketId string)),
+			UserCheckers: make(map[string]func(ctx context.Context, channel channels.Channel, userId string) error),
 		}
 	})
 	return pp
@@ -108,6 +111,10 @@ func (pp PusherProvider) OnLeave(namespace string, handler func(ctx context.Cont
 	pp.LeaveListeners[namespace] = listeners
 }
 
+func (pp PusherProvider) SetUserChecker(namespace string, checker func(ctx context.Context, channel channels.Channel, userId string) error)  {
+	pp.UserCheckers[namespace] = checker
+}
+
 func (pp PusherProvider) HandleChannelAuth(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -126,6 +133,17 @@ func (pp PusherProvider) HandleChannelAuth(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		handler_helpers.RespondWithJSONError(w, http.StatusForbidden, err)
 		return
+	}
+
+	// We can safely ignore the error here, because AuthenticatePresenceChannel does the same check.
+	params, _ := url.ParseQuery(string(body))
+	ch := pp.ChannelFromClientId(r.Context(), params["channel_name"][0])
+
+	if checker, ok := pp.UserCheckers[ch.Namespace()]; ok {
+		err = checker(r.Context(), ch, uid)
+		if err != nil {
+			handler_helpers.RespondWithJSONError(w, http.StatusForbidden, err)
+		}
 	}
 
 	w.Write(resp)
