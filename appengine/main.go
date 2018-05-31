@@ -5,9 +5,9 @@ import (
 	"net/http"
 
 	"github.com/bigblind/makker"
+	_ "github.com/bigblind/makker/channels/pusher" // so Pusher gets injected
 	"github.com/bigblind/makker/games"
 	"github.com/bigblind/makker/di"
-	_ "github.com/bigblind/makker/channels/pusher" // so Pusher gets injected
 )
 
 func init() {

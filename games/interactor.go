@@ -5,7 +5,48 @@ import (
 	"time"
 	"context"
 	"github.com/bigblind/makker/di"
+	"github.com/bigblind/makker/channels"
+	"strings"
 )
+
+func init()  {
+	di.Graph.Invoke(func(cp channels.ChannelProvider) {
+
+		cp.SetUserChecker("games", func(ctx context.Context, channel channels.Channel, userId string) error {
+			parts := strings.Split(channel.Id(), ";")
+
+			if userId != parts[1] {
+				return fmt.Errorf("this is not your private channel")
+			}
+
+			instId := parts[0]
+			inter := NewInteractor(ctx)
+			inst, err := inter.GetInstance(instId)
+			if err != nil {
+				return err
+			}
+
+			if inst.MetaState == WaitingForPlayers && !inst.HasPlayer(userId) {
+				return inter.JoinGame(inst.Id, userId)
+			}
+
+			if !inst.HasPlayer(userId) {
+				return fmt.Errorf("you're not in this game.")
+			}
+
+			return nil
+		})
+
+		cp.OnLeave("games", func(ctx context.Context, channel channels.Channel, userId, socketId string) {
+			inter := NewInteractor(ctx)
+
+			parts := strings.Split(channel.Id(), ";")
+
+			instId := parts[0]
+			inter.LeaveGame(instId, userId)
+		})
+	})
+}
 
 type GamesInteractor struct {
 	store GameStore
@@ -46,6 +87,17 @@ func (inter GamesInteractor) JoinGame(instanceId, userId string) error {
 	}
 
 	inst.AddPlayer(userId)
+
+	return inter.store.SaveInstance(inst)
+}
+
+func (inter GamesInteractor) LeaveGame(instanceId, userId string) error {
+	inst, err := inter.store.GetInstanceById(instanceId)
+	if err != nil {
+		return err
+	}
+
+	inst.RemovePlayer(userId)
 
 	return inter.store.SaveInstance(inst)
 }

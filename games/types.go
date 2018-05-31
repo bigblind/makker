@@ -106,6 +106,15 @@ func (gs *GameState) AddPlayer(userId string) {
 
 func (i *GameInstance) AddPlayer(userId string) {i.State.AddPlayer(userId)}
 
+func (gs *GameState) RemovePlayer(userId string) {
+	pi := gs.GetPlayerIndex(userId)
+	if pi > -1 {
+		gs.Players = append(gs.Players[:pi], gs.Players[pi+1:]...)
+	}
+}
+
+func (i *GameInstance) RemovePlayer(userId string) {i.State.RemovePlayer(userId)}
+
 func (gs *GameState) HasPlayer(userId string) bool {
 	return gs.GetPlayerIndex(userId) >= 0
 }
@@ -141,7 +150,7 @@ type InstanceChannels struct {
 func (i *GameInstance) Channels(userId string) InstanceChannels {
 	return InstanceChannels{
 		Public: i.Id,
-		Private: fmt.Sprintf("%v-%v", i.Id, userId),
+		Private: fmt.Sprintf("%v;%v", i.Id, userId),
 	}
 }
 
