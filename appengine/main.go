@@ -18,11 +18,10 @@ func init() {
 		router.ServeHTTP(w, r.WithContext(appengine.NewContext(r)))
 	}))
 
-	injectDeps()
 	appengine.Main()
 }
 
-func injectDeps() {
+func init() {
 	di.Graph.Provide(func() games.StoreConstructor {
 		return NewGameStore
 	})
