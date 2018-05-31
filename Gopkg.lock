@@ -66,6 +66,15 @@
   version = "v1.2.1"
 
 [[projects]]
+  name = "go.uber.org/dig"
+  packages = [
+    ".",
+    "internal/digreflect"
+  ]
+  revision = "d100de9c8cc8358591507951141bc107713ba671"
+  version = "v1.3.0"
+
+[[projects]]
   branch = "master"
   name = "golang.org/x/net"
   packages = ["context"]
@@ -91,6 +100,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a41a0112874830415902737ecc4a921aaf7e3ce725adabe9d7de9eda61dc2c16"
+  inputs-digest = "eb5efb15b76bcb65857b5e48a499328c90c1ae07c7957af57394cbab8bd0c2dd"
   solver-name = "gps-cdcl"
   solver-version = 1

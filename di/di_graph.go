@@ -1,5 +1,7 @@
 package di
 
-import "github.com/karlkfi/inject"
+import (
+	"go.uber.org/dig"
+)
 
-var Graph = inject.NewGraph()
+var Graph = dig.New()
