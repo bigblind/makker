@@ -18,9 +18,9 @@ import (
 type PusherProvider struct {
 	HttpClientConstructor func(ctx context.Context) *http.Client
 
-	JoinListeners map[string][]func(ctx context.Context, channel channels.Channel, userId, socketId string)
-	LeaveListeners map[string][]func(ctx context.Context, channel channels.Channel, userId, socketId string)
-	UserCheckers map[string]func(ctx context.Context, channel channels.Channel, userId string) error
+	JoinListeners map[string][]channels.EventHandler
+	LeaveListeners map[string][]channels.EventHandler
+	UserCheckers map[string]channels.ChannelAuthChecker
 }
 
 type channelProviderParams struct {
@@ -35,9 +35,9 @@ func NewChannelProvider(ctx context.Context) channels.ChannelProvider {
 	di.Graph.Invoke(func(params channelProviderParams) {
 		pp = PusherProvider{
 			HttpClientConstructor: params.ClientConstructor,
-			JoinListeners: make(map[string][]func(ctx context.Context, channel channels.Channel, userId, socketId string)),
-			LeaveListeners: make(map[string][]func(ctx context.Context, channel channels.Channel, userId, socketId string)),
-			UserCheckers: make(map[string]func(ctx context.Context, channel channels.Channel, userId string) error),
+			JoinListeners: make(map[string][]channels.EventHandler),
+			LeaveListeners: make(map[string][]channels.EventHandler),
+			UserCheckers: make(map[string]channels.ChannelAuthChecker),
 		}
 	})
 	return pp
@@ -87,31 +87,31 @@ func (pp PusherProvider) ChannelFromClientId(ctx context.Context, id string) cha
 	}
 }
 
-func (pp PusherProvider) OnJoin(namespace string, handler func(ctx context.Context, channel channels.Channel, userId, socketId string)) {
-	var listeners []func(ctx context.Context, channel channels.Channel, userId, socketId string)
+func (pp PusherProvider) OnJoin(namespace string, handler channels.EventHandler) {
+	var listeners []channels.EventHandler
 	var ok bool
 
 	if listeners, ok = pp.JoinListeners[namespace]; !ok {
-		listeners = make([]func(ctx context.Context, channel channels.Channel, userId, socketId string), 1)
+		listeners = make([]channels.EventHandler, 1)
 	}
 
 	listeners = append(listeners, handler)
 	pp.JoinListeners[namespace] = listeners
 }
 
-func (pp PusherProvider) OnLeave(namespace string, handler func(ctx context.Context, channel channels.Channel, userId, socketId string)) {
-	var listeners []func(ctx context.Context, channel channels.Channel, userId, socketId string)
+func (pp PusherProvider) OnLeave(namespace string, handler channels.EventHandler) {
+	var listeners []channels.EventHandler
 	var ok bool
 
 	if listeners, ok = pp.LeaveListeners[namespace]; !ok {
-		listeners = make([]func(ctx context.Context, channel channels.Channel, userId, socketId string), 1)
+		listeners = make([]channels.EventHandler, 1)
 	}
 
 	listeners = append(listeners, handler)
 	pp.LeaveListeners[namespace] = listeners
 }
 
-func (pp PusherProvider) SetUserChecker(namespace string, checker func(ctx context.Context, channel channels.Channel, userId string) error)  {
+func (pp PusherProvider) SetUserChecker(namespace string, checker channels.ChannelAuthChecker)  {
 	pp.UserCheckers[namespace] = checker
 }
 
@@ -163,7 +163,7 @@ func (pp PusherProvider) HadleWebHook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var listeners []func(ctx context.Context, channel channels.Channel, userId, socketId string)
+	var listeners []channels.EventHandler
 	var ok bool
 
 	for _, e := range wh.Events {
