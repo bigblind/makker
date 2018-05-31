@@ -31,7 +31,7 @@ func CreateInstace(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetInstance(w http.ResponseWriter, r *http.Request)  {
-	err := di.Graph.Invoke(func(constructor StoreConstructor, cp channels.ChannelProvider) {
+	err := di.Graph.Invoke(func(cp channels.ChannelProvider) {
 		inter := NewInteractor(r.Context())
 
 		vars := mux.Vars(r)
@@ -45,6 +45,22 @@ func GetInstance(w http.ResponseWriter, r *http.Request)  {
 	if err != nil {
 		handler_helpers.RespondWithJSONError(w, http.StatusInternalServerError, err)
 	}
+}
+
+func StartGame(w http.ResponseWriter, r *http.Request)  {
+	inter := NewInteractor(r.Context())
+
+	uid := users.GetUserId(r)
+	vars := mux.Vars(r)
+	err := inter.StartGame(vars["instanceId"], uid)
+	if err != nil {
+		handler_helpers.RespondWithJSONError(w, 400, err)
+	} else {
+		handler_helpers.RespondWithJSON(w, 200, map[string]bool{
+			"success": true,
+		})
+	}
+
 }
 
 type MoveRequest struct {
