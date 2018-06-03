@@ -128,10 +128,12 @@ func (gs appEngineGameStore) GetInstanceById(id string) (*games.GameInstance, er
 	return ent.toInstance(key), nil
 }
 
-func (gs appEngineGameStore) GetInstancesByGame(gameName string) (*[]games.GameInstance, error) {
+func (gs appEngineGameStore) GetInstancesByGame(gameName string, state... games.MetaState) (*[]games.GameInstance, error) {
 	q := datastore.NewQuery(gameInstanceKind)
 	q = q.Filter("GameName =", gameName)
-	q = q.Filter("MetaState =", games.WaitingForPlayers)
+	if len(state) != 0 {
+		q = q.Filter("MetaState =", state[0])
+	}
 
 	var res []gameInstanceEntity
 	keys, err := q.GetAll(gs.ctx, &res)
@@ -147,12 +149,14 @@ func (gs appEngineGameStore) GetInstancesByGame(gameName string) (*[]games.GameI
 	return &insts, nil
 }
 
-func (gs appEngineGameStore) GetInstancesByGameVersion(game games.Game) (*[]games.GameInstance, error) {
+func (gs appEngineGameStore) GetInstancesByGameVersion(game games.Game, state... games.MetaState) (*[]games.GameInstance, error) {
 	q := datastore.NewQuery(gameInstanceKind)
 	inf := game.Info()
 	q = q.Filter("GameName =", inf.Name)
 	q = q.Filter("GameVersion =", inf.Version)
-	q = q.Filter("MetaState =", games.WaitingForPlayers)
+	if len(state) != 0 {
+		q = q.Filter("MetaState =", state[0])
+	}
 
 	var res []gameInstanceEntity
 	keys, err := q.GetAll(gs.ctx, &res)

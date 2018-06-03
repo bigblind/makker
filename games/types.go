@@ -157,8 +157,10 @@ func (i *GameInstance) Channels(userId string) InstanceChannels {
 type GameStore interface {
 	SaveInstance(instance *GameInstance) error
 	GetInstanceById(id string) (*GameInstance, error)
-	GetInstancesByGame(gameName string) (*[]GameInstance, error)
-	GetInstancesByGameVersion(game Game) (*[]GameInstance, error)
+
+	GetInstancesByGame(gameName string, state... MetaState) (*[]GameInstance, error)
+	GetInstancesByGameVersion(game Game, state... MetaState) (*[]GameInstance, error)
+
 	DeleteGameInstance(instance *GameInstance) error
 }
 
