@@ -7,6 +7,7 @@ import (
 	"github.com/bigblind/makker/di"
 	"github.com/bigblind/makker/channels"
 	"strings"
+	"go/ast"
 )
 
 func init()  {
@@ -175,6 +176,9 @@ func (inter GamesInteractor) MakeMove(instanceId, userId string, moveData interf
 	return *inst, nil
 }
 
+func (inter GamesInteractor) ListInstances(gname string, state... MetaState) (*[]GameInstance, error) {
+	return inter.store.GetInstancesByGame(gname, state...)
+}
 
 func transformInstanceForPlayer(inst GameInstance, userId string) (GameInstance, error) {
 	idx := int(inst.GetPlayerIndex(userId))
