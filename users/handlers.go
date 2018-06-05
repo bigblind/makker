@@ -18,7 +18,7 @@ func UserIdMiddleware(next http.Handler) http.Handler {
 
 		_, ok := session.Values["userId"]
 		if !ok {
-			session.Values["userId"] = fmt.Sprintf("guest_player%v", rand.Int())
+			session.Values["userId"] = fmt.Sprintf("guest_%v", rand.Intn(100000))
 		}
 		session.Save(r, w)
 
