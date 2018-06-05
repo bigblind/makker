@@ -5,60 +5,41 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"testing"
+	"github.com/bigblind/makker/channels"
 )
 
-type MockGamesStore struct {
-	mock.Mock
-}
-
-func (mgs MockGamesStore) SaveInstance(instance *GameInstance) error {
-	args := mgs.Called(instance)
-	return args.Error(0)
-}
-
-func (mgs MockGamesStore) GetInstanceById(id string) (*GameInstance, error) {
-	args := mgs.Called(id)
-	return args.Get(0).(*GameInstance), args.Error(1)
-}
-
-func (mgs MockGamesStore) GetInstancesByGame(gameName string) (*[]GameInstance, error) {
-	args := mgs.Called(gameName)
-	return args.Get(0).(*[]GameInstance), args.Error(1)
-}
-
-func (mgs MockGamesStore) GetInstancesByGameVersion(game Game) (*[]GameInstance, error) {
-	args := mgs.Called(game)
-	return args.Get(0).(*[]GameInstance), args.Error(1)
-}
-
-func (mgs MockGamesStore) DeleteGameInstance(instance *GameInstance) error {
-	args := mgs.Called(instance)
-	return args.Error(0)
-}
-
-func createInteractor() (GamesInteractor, *MockGamesStore) {
+func createInteractor() (GamesInteractor, *MockGamesStore, *channels.MockChannelProvider) {
 	mgs := new(MockGamesStore)
-	return GamesInteractor{mgs}, mgs
+	mcp := new(channels.MockChannelProvider)
+	return GamesInteractor{mgs, mcp}, mgs, mcp
 }
 
 func TestGamesInteractor_CreateInstance(t *testing.T) {
 	req := require.New(t)
-	int, mgs := createInteractor()
+	int, mgs, mcp := createInteractor()
 	game := makeGame("myGame", 1)
 	game2 := makeGame("myGame", 2)
 	Registry.Register(game)
 	Registry.Register(game2)
 
-	mgs.On("SaveInstance", mock.AnythingOfType("*games.GameInstance")).Return(nil).Once()
+	pubc := channels.NewMockChannel("games", "publicId", true)
+	privc := channels.NewMockChannel("games", "privateId", false)
 
-	inst, err := int.CreateInstance("myGame", "UserId")
+	mgs.On("SaveInstance", mock.AnythingOfType("*games.GameInstance")).Return(nil).Once()
+	mcp.On("NewChannel", nil, "games", "", true).Return(pubc)
+	mcp.On("NewChannel", nil, "games", ";userId", false).Return(privc)
+	pubc.On("ClientId").Return("pubId")
+	privc.On("ClientId").Return("privId")
+
+	inst, err := int.CreateInstance("myGame", "userId")
 
 	req.NoError(err)
-	req.Equal("myGame", inst.GameName)
-	req.Equal(2, inst.GameVersion)
-	req.Equal("UserId", inst.AdminUserId)
-	req.Equal(1, len(inst.State.Players))
-	req.Equal("UserId", inst.State.Players[0].UserId)
+	req.Equal("myGame", inst.GameInfo.Name)
+	req.Equal(2, inst.GameInfo.Version)
+	req.Equal(1, len(inst.Players))
+	req.Equal("userId", inst.Players[0].UserId)
+	req.Equal("pubId", inst.PublicChannel)
+	req.Equal("privId", inst.PrivateChannel)
 
 	// error cases
 	// The game does not exist
@@ -67,14 +48,14 @@ func TestGamesInteractor_CreateInstance(t *testing.T) {
 
 	// The GameStore returned an error
 	mgs.On("SaveInstance", mock.AnythingOfType("*games.GameInstance")).Return(fmt.Errorf("foo"))
-	_, err = int.CreateInstance("myGame", "oo")
+	_, err = int.CreateInstance("myGame", "foo")
 	mgs.AssertExpectations(t)
 	req.Error(err, "Should return an error when the GameStore returns an error")
 }
 
 func TestGamesInteractor_JoinGame(t *testing.T) {
 	req := require.New(t)
-	int, mgs := createInteractor()
+	int, mgs, _ := createInteractor()
 	g := makeGame("myGame", 1)
 	Registry.Register(g)
 	inst := NewInstance(g, "adminId")
@@ -96,7 +77,7 @@ func TestGamesInteractor_JoinGame(t *testing.T) {
 
 func TestGamesInteractor_StartGame(t *testing.T) {
 	req := require.New(t)
-	int, mgs := createInteractor()
+	int, mgs, _ := createInteractor()
 	g := makeGame("myGame", 1)
 	inst := NewInstance(g, "UserId")
 	mgs.On("GetInstanceById", "instanceId").Return(inst, nil).Once()
@@ -114,32 +95,49 @@ func TestGamesInteractor_StartGame(t *testing.T) {
 
 func TestGamesInteractor_GetInstance(t *testing.T) {
 	req := require.New(t)
-	int, mgs := createInteractor()
+	int, mgs, mcp := createInteractor()
 	g := makeGame("myGame", 1)
 	inst := NewInstance(g, "adminId")
 	inst.AddPlayer("player1")
 	inst.AddPlayer("player2")
 	inst.AddPlayer("player3")
 
+	pubc := channels.NewMockChannel("games", "publicId", true)
+	privc := channels.NewMockChannel("games", "privateId", false)
+
 	inst.MetaState = InProgress
 	mgs.On("GetInstanceById", "instanceId").Return(inst, nil)
+	mcp.On("NewChannel", nil, "games", "", true).Return(pubc)
+	mcp.On("NewChannel", nil, "games", ";", false).Return(privc)
+	pubc.On("ClientId").Return("pubId")
+	privc.On("ClientId").Return("privId")
 
 	inst2, err := int.GetInstance("instanceId")
 	req.NoError(err)
-	req.Equal("myGame", inst2.GameName)
-	req.Equal(1, inst2.GameVersion)
+	req.Equal("myGame", inst2.GameInfo.Name)
+	req.Equal(1, inst2.GameInfo.Version)
+	req.Equal("pubId", inst2.PublicChannel)
+	req.Equal("privId", inst2.PrivateChannel)
 }
 
 func TestGamesInteractor_MakeMove(t *testing.T) {
 	req := require.New(t)
-	int, mgs := createInteractor()
+	int, mgs, mcp := createInteractor()
 	g := makeGame("myGame", 1)
 	inst := NewInstance(g, "adminId")
 	inst.AddPlayer("player1")
 	inst.AddPlayer("player2")
 
+	pubc := channels.NewMockChannel("games", "publicId", true)
+	privc := channels.NewMockChannel("games", "privateId", false)
+
 	mgs.On("GetInstanceById", "instanceId").Return(inst, nil)
 	mgs.On("SaveInstance", inst).Return(nil)
+	mcp.On("NewChannel", nil, "games", "", true).Return(pubc)
+	mcp.On("NewChannel", nil, "games", ";player2", false).Return(privc)
+	pubc.On("ClientId").Return("pubId")
+	privc.On("ClientId").Return("privId")
+
 	var move Move
 	g.On("HandleUpdate", &inst.State, mock.AnythingOfType("games.Move")).Run(func(args mock.Arguments) {
 		move = args.Get(1).(Move)
@@ -150,9 +148,8 @@ func TestGamesInteractor_MakeMove(t *testing.T) {
 	g.On("IsGameOver", &inst.State).Return((true))
 	Registry.Register(g)
 
-	inst2, err := int.MakeMove("instanceId", "player2", "MoveData")
+	_, err := int.MakeMove("instanceId", "player2", "MoveData")
 	req.NoError(err)
-	req.Equal(move, inst2.Moves[len(inst.Moves)-1])
 	g.AssertExpectations(t)
 	mgs.AssertExpectations(t)
 }
