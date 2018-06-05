@@ -9,6 +9,20 @@ import (
 	"net/http"
 )
 
+func ListInstancesByGame(w http.ResponseWriter, r *http.Request) {
+	inter := NewInteractor(r.Context())
+
+	vars := mux.Vars(r)
+
+	insts, err := inter.ListInstances(vars["game"])
+	if err != nil {
+		handler_helpers.RespondWithJSONError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	handler_helpers.RespondWithJSON(w, http.StatusOK, insts)
+}
+
 func CreateInstace(w http.ResponseWriter, r *http.Request) {
 	inter := NewInteractor(r.Context())
 
