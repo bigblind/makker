@@ -2,10 +2,10 @@ package games
 
 import (
 	"fmt"
+	"github.com/bigblind/makker/channels"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"testing"
-	"github.com/bigblind/makker/channels"
 )
 
 func createInteractor() (GamesInteractor, *MockGamesStore, *channels.MockChannelProvider) {

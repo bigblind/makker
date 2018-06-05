@@ -1,8 +1,8 @@
 package channels
 
 import (
-	"github.com/stretchr/testify/mock"
 	"context"
+	"github.com/stretchr/testify/mock"
 	"net/http"
 )
 
@@ -38,7 +38,7 @@ func (mcp *MockChannelProvider) HadleWebHook(w http.ResponseWriter, r *http.Requ
 type MockChannel struct {
 	mock.Mock
 	namespace, id string
-	public bool
+	public        bool
 }
 
 func NewMockChannel(namespace, id string, public bool) *MockChannel {
@@ -73,5 +73,3 @@ func (mc *MockChannel) Emit(event string, data interface{}) {
 func (mc *MockChannel) EmitExcluding(socketId, event string, data interface{}) {
 	mc.Called(socketId, event, data)
 }
-
-

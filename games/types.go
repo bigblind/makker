@@ -9,22 +9,22 @@ import (
 
 type GameInfo struct {
 	// The name of the game
-	Name string		`json:"name"`
+	Name string `json:"name"`
 
 	// The minimum number of players
-	MinPlayers int	`json:"min_players"`
+	MinPlayers int `json:"min_players"`
 
 	// The version of this game
-	Version int		`json:"version"`
+	Version int `json:"version"`
 
 	// The maximum number of players
-	MaxPlayers int	`json:"max_players"`
+	MaxPlayers int `json:"max_players"`
 
 	// After not receiving a state update from a player for this duration, they're considered "gone", and lose the game
-	PlayerTimeout time.Duration	`json:"player_timeout"`
+	PlayerTimeout time.Duration `json:"player_timeout"`
 
 	// Whether the player automatically loses the game when they disconnect
-	LoseOnDisconnect bool	`json:"lose_on_disconnect"`
+	LoseOnDisconnect bool `json:"lose_on_disconnect"`
 }
 
 type PlayerState struct {

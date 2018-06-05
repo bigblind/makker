@@ -16,12 +16,12 @@ func (mgs MockGamesStore) GetInstanceById(id string) (*GameInstance, error) {
 	return args.Get(0).(*GameInstance), args.Error(1)
 }
 
-func (mgs MockGamesStore) GetInstancesByGame(gameName string, state... MetaState) (*[]GameInstance, error) {
+func (mgs MockGamesStore) GetInstancesByGame(gameName string, state ...MetaState) (*[]GameInstance, error) {
 	args := mgs.Called(gameName)
 	return args.Get(0).(*[]GameInstance), args.Error(1)
 }
 
-func (mgs MockGamesStore) GetInstancesByGameVersion(game Game, state... MetaState) (*[]GameInstance, error) {
+func (mgs MockGamesStore) GetInstancesByGameVersion(game Game, state ...MetaState) (*[]GameInstance, error) {
 	args := mgs.Called(game)
 	return args.Get(0).(*[]GameInstance), args.Error(1)
 }

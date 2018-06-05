@@ -77,7 +77,7 @@ func (inter GamesInteractor) CreateInstance(gameName, userId string) (instanceRe
 	inst.AddPlayer(userId)
 	err = inter.store.SaveInstance(inst)
 	if err != nil {
-		return  instanceResponse{}, err
+		return instanceResponse{}, err
 	}
 
 	return instanceToResponse(inst, userId, inter.cp), nil
