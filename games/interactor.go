@@ -76,7 +76,11 @@ func (inter GamesInteractor) CreateInstance(gameName, userId string) (instanceRe
 	inst := NewInstance(g, userId)
 	inst.AddPlayer(userId)
 	err = inter.store.SaveInstance(inst)
-	return instanceToResponse(inst, userId, inter.cp), err
+	if err != nil {
+		return  instanceResponse{}, err
+	}
+
+	return instanceToResponse(inst, userId, inter.cp), nil
 }
 
 func (inter GamesInteractor) JoinGame(instanceId, userId string) error {
@@ -133,7 +137,7 @@ func (inter GamesInteractor) GetInstance(instanceId string, userId ...string) (i
 	}
 
 	uid := ""
-	if len(userId) == 0 {
+	if len(userId) != 0 {
 		uid = userId[0]
 	}
 
