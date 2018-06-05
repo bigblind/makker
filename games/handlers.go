@@ -22,7 +22,7 @@ func CreateInstace(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			handler_helpers.RespondWithJSONError(w, 400, err)
 		} else {
-			handler_helpers.RespondWithJSON(w, 200, instancetoResponse(&inst, r, cp))
+			handler_helpers.RespondWithJSON(w, 200, inst)
 		}
 	})
 	if err != nil {
@@ -39,7 +39,7 @@ func GetInstance(w http.ResponseWriter, r *http.Request)  {
 		if err != nil {
 			handler_helpers.RespondWithJSONError(w, 400, err)
 		} else {
-			handler_helpers.RespondWithJSON(w, 200, instancetoResponse(&inst, r, cp))
+			handler_helpers.RespondWithJSON(w, 200, inst)
 		}
 	})
 	if err != nil {
@@ -90,26 +90,10 @@ func MakeMove(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			handler_helpers.RespondWithJSONError(w, 400, err)
 		} else {
-			handler_helpers.RespondWithJSON(w, 200, instancetoResponse(&inst, r, cp))
+			handler_helpers.RespondWithJSON(w, 200, inst)
 		}
 	})
 	if err != nil {
 		handler_helpers.RespondWithJSONError(w, http.StatusInternalServerError, err)
-	}
-}
-
-type instanceResponse struct{
-	*GameInstance
-	PublicChannel  string
-	PrivateChannel string
-}
-
-func instancetoResponse(i *GameInstance, r *http.Request, cp channels.ChannelProvider) instanceResponse {
-	uid := users.GetUserId(r)
-	chanIds := i.Channels(uid)
-	return instanceResponse{
-		GameInstance: i,
-		PublicChannel: cp.NewChannel(r.Context(), "games", chanIds.Public, true).ClientId(),
-		PrivateChannel: cp.NewChannel(r.Context(), "games", chanIds.Private, false).ClientId(),
 	}
 }

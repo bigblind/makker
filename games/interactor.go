@@ -7,13 +7,13 @@ import (
 	"github.com/bigblind/makker/di"
 	"github.com/bigblind/makker/channels"
 	"strings"
-	"go/ast"
 )
 
 func init()  {
-	di.Graph.Invoke(func(cp channels.ChannelProvider) {
+	di.Graph.Invoke(func(gs GameStore, cp channels.ChannelProvider) {
 
 		cp.SetUserChecker("games", func(ctx context.Context, channel channels.Channel, userId string) error {
+
 			parts := strings.Split(channel.Id(), ";")
 
 			if userId != parts[1] {
@@ -21,14 +21,14 @@ func init()  {
 			}
 
 			instId := parts[0]
-			inter := NewInteractor(ctx)
-			inst, err := inter.GetInstance(instId)
+			inst, err := gs.GetInstanceById(instId)
 			if err != nil {
 				return err
 			}
 
+			inter := NewInteractor(ctx)
 			if inst.MetaState == WaitingForPlayers && !inst.HasPlayer(userId) {
-				return inter.JoinGame(inst.Id, userId)
+				return inter.joinInstance(inst, userId)
 			}
 
 			if !inst.HasPlayer(userId) {
@@ -51,30 +51,32 @@ func init()  {
 
 type GamesInteractor struct {
 	store GameStore
+	cp channels.ChannelProvider
 }
 
 func NewInteractor(ctx context.Context) GamesInteractor {
 	var inter GamesInteractor
-	di.Graph.Invoke(func(sc StoreConstructor) {
+	di.Graph.Invoke(func(sc StoreConstructor, cp channels.ChannelProvider) {
 		inter = GamesInteractor{
 			sc(ctx),
+			cp,
 		}
 	})
 
 	return inter
 }
 
-func (inter GamesInteractor) CreateInstance(gameName, userId string) (GameInstance, error) {
+func (inter GamesInteractor) CreateInstance(gameName, userId string) (instanceResponse, error) {
 	g, err := Registry.GetGameLatestVersion(gameName)
 
 	if err != nil {
-		return GameInstance{}, err
+		return instanceResponse{}, err
 	}
 
 	inst := NewInstance(g, userId)
 	inst.AddPlayer(userId)
 	err = inter.store.SaveInstance(inst)
-	return *inst, err
+	return instanceToResponse(inst, userId, inter.cp), err
 }
 
 func (inter GamesInteractor) JoinGame(instanceId, userId string) error {
@@ -83,6 +85,10 @@ func (inter GamesInteractor) JoinGame(instanceId, userId string) error {
 		return err
 	}
 
+	return inter.joinInstance(inst, userId)
+}
+
+func (inter GamesInteractor) joinInstance(inst *GameInstance, userId string) error  {
 	if inst.HasPlayer(userId) {
 		return fmt.Errorf("%v is already in the game.", userId)
 	}
@@ -120,35 +126,35 @@ func (inter GamesInteractor) StartGame(instanceId, userId string) error {
 	return inter.store.SaveInstance(inst)
 }
 
-func (inter GamesInteractor) GetInstance(instanceId string) (GameInstance, error) {
+func (inter GamesInteractor) GetInstance(instanceId string, userId... string) (instanceResponse, error) {
 	inst, err := inter.store.GetInstanceById(instanceId)
 	if err != nil {
-		return GameInstance{}, err
+		return instanceResponse{}, err
 	}
 
-	// If the game isn't in progress, we can return it as-is
-	if inst.MetaState != InProgress {
-		return *inst, nil
+	uid := ""
+	if len(userId) == 0 {
+		uid = userId[0]
 	}
 
-	return *inst, err
+	return instanceToResponse(inst, uid, inter.cp), err
 }
 
-func (inter GamesInteractor) MakeMove(instanceId, userId string, moveData interface{}) (GameInstance, error) {
+func (inter GamesInteractor) MakeMove(instanceId, userId string, moveData interface{}) (instanceResponse, error) {
 	inst, err := inter.store.GetInstanceById(instanceId)
 	if err != nil {
-		return *inst, err
+		return instanceResponse{}, err
 	}
 
 	idx := inst.GetPlayerIndex(userId)
 	if idx < 0 {
-		return *inst, fmt.Errorf("you're not in this game.")
+		return instanceToResponse(inst, userId, inter.cp), fmt.Errorf("you're not in this game.")
 	}
 
 	game := inst.Game()
 
 	if !game.CanPlayerMove(int(idx), &inst.State) {
-		return *inst, fmt.Errorf("you can't make a move right now")
+		return instanceToResponse(inst, userId, inter.cp), fmt.Errorf("you can't make a move right now")
 	}
 
 	move := Move{
@@ -159,7 +165,7 @@ func (inter GamesInteractor) MakeMove(instanceId, userId string, moveData interf
 
 	err = game.HandleUpdate(&inst.State, move)
 	if err != nil {
-		return *inst, err
+		return instanceToResponse(inst, userId, inter.cp), err
 	}
 
 	inst.Moves = append(inst.Moves, move)
@@ -170,34 +176,59 @@ func (inter GamesInteractor) MakeMove(instanceId, userId string, moveData interf
 
 	err = inter.store.SaveInstance(inst)
 	if err != nil {
-		return *inst, err
+		return instanceToResponse(inst, userId, inter.cp), err
 	}
 
-	return *inst, nil
+	return instanceToResponse(inst, userId, inter.cp), nil
 }
 
-func (inter GamesInteractor) ListInstances(gname string, state... MetaState) (*[]GameInstance, error) {
-	return inter.store.GetInstancesByGame(gname, state...)
-}
-
-func transformInstanceForPlayer(inst GameInstance, userId string) (GameInstance, error) {
-	idx := int(inst.GetPlayerIndex(userId))
-	// If the user isn't a player in the game,
-	// act as if they're the user at position 0, keeping the list as it is.
-	if idx < 0 {
-		idx = 0
+func (inter GamesInteractor) ListInstances(gname string, state... MetaState) (*[]instanceResponse, error) {
+	insts, err := inter.store.GetInstancesByGame(gname, state...)
+	if err != nil {
+		return nil, err
 	}
 
-	// Rotate the list of players so that the current user is first.
-	// Also remove private state from other players
-	ps := inst.State.Players
-	n := len(ps)
-	inst.State.Players = make([]PlayerState, n)
-	for i, p := range ps {
-		if p.UserId != userId {
-			p.PrivateState = nil
+	ris := make([]instanceResponse, len(*insts))
+	for i, inst := range *insts {
+		ris[i] = instanceToResponse(&inst, "", inter.cp)
+	}
+
+	return &ris, nil
+}
+
+type instanceResponsePlayer struct {
+	UserId string	`json:"user_id"`
+	Score int32		`json:"score"`
+}
+
+type instanceResponse struct {
+	Id string `json:"id"`
+	GameInfo GameInfo `json:"game_info"`
+	State MetaState `json:"state"`
+	Players []instanceResponsePlayer `json:"player_ids"`
+
+	PublicChannel  string `json:"public_channel"`
+	PrivateChannel string `json:"private_channel"`
+}
+
+
+func instanceToResponse(i *GameInstance, uid string, cp channels.ChannelProvider) instanceResponse {
+	chanIds := i.Channels(uid)
+	ps := make([]instanceResponsePlayer, len(i.State.Players))
+	for j, p := range i.State.Players {
+		ps[j] = instanceResponsePlayer{
+			UserId: p.UserId,
+			Score: p.Score,
 		}
-		inst.State.Players[(n + i - idx) % n] = p
 	}
-	return inst, nil
+
+	return instanceResponse{
+		Id: i.Id,
+		GameInfo: i.Game().Info(),
+		State: i.MetaState,
+		Players: ps,
+
+		PublicChannel: cp.NewChannel(nil, "games", chanIds.Public, true).ClientId(),
+		PrivateChannel: cp.NewChannel(nil, "games", chanIds.Private, false).ClientId(),
+	}
 }
