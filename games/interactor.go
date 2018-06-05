@@ -205,7 +205,7 @@ type instanceResponse struct {
 	Id       string                   `json:"id"`
 	GameInfo GameInfo                 `json:"game_info"`
 	State    MetaState                `json:"state"`
-	Players  []instanceResponsePlayer `json:"player_ids"`
+	Players  []instanceResponsePlayer `json:"players"`
 
 	PublicChannel  string `json:"public_channel"`
 	PrivateChannel string `json:"private_channel"`
