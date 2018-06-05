@@ -1,10 +1,10 @@
 package games
 
 import (
-	"math/rand"
-	"time"
 	"context"
 	"fmt"
+	"math/rand"
+	"time"
 )
 
 type GameInfo struct {
@@ -58,7 +58,7 @@ type Game interface {
 	Info() GameInfo
 
 	InitializeState(state *GameState)
-	HandleUpdate(g *GameState, m Move) (error)
+	HandleUpdate(g *GameState, m Move) error
 	CanPlayerMove(playerIndex int, g *GameState) bool
 	IsGameOver(g *GameState) bool
 }
@@ -80,7 +80,7 @@ func NewInstance(g Game, adminUserId string) *GameInstance {
 		GameVersion: info.Version,
 		AdminUserId: adminUserId,
 
-		Moves: make([]Move, 0),
+		Moves:     make([]Move, 0),
 		MetaState: WaitingForPlayers,
 		State: GameState{
 			Players: make([]PlayerState, 0, info.MaxPlayers),
@@ -104,7 +104,7 @@ func (gs *GameState) AddPlayer(userId string) {
 	})
 }
 
-func (i *GameInstance) AddPlayer(userId string) {i.State.AddPlayer(userId)}
+func (i *GameInstance) AddPlayer(userId string) { i.State.AddPlayer(userId) }
 
 func (gs *GameState) RemovePlayer(userId string) {
 	pi := gs.GetPlayerIndex(userId)
@@ -113,13 +113,13 @@ func (gs *GameState) RemovePlayer(userId string) {
 	}
 }
 
-func (i *GameInstance) RemovePlayer(userId string) {i.State.RemovePlayer(userId)}
+func (i *GameInstance) RemovePlayer(userId string) { i.State.RemovePlayer(userId) }
 
 func (gs *GameState) HasPlayer(userId string) bool {
 	return gs.GetPlayerIndex(userId) >= 0
 }
 
-func (i *GameInstance) HasPlayer(userId string) bool {return i.State.HasPlayer(userId)}
+func (i *GameInstance) HasPlayer(userId string) bool { return i.State.HasPlayer(userId) }
 
 func (gs *GameState) GetPlayerIndex(userId string) int16 {
 	for i, p := range gs.Players {
@@ -131,7 +131,7 @@ func (gs *GameState) GetPlayerIndex(userId string) int16 {
 	return -1
 }
 
-func (i *GameInstance) GetPlayerIndex(userId string) int16 {return i.State.GetPlayerIndex(userId)}
+func (i *GameInstance) GetPlayerIndex(userId string) int16 { return i.State.GetPlayerIndex(userId) }
 
 // ShufflePlayers randomly reorders the players, so they're not playing in the order they joined
 func (i *GameInstance) ShufflePlayers() {
@@ -149,7 +149,7 @@ type InstanceChannels struct {
 
 func (i *GameInstance) Channels(userId string) InstanceChannels {
 	return InstanceChannels{
-		Public: i.Id,
+		Public:  i.Id,
 		Private: fmt.Sprintf("%v;%v", i.Id, userId),
 	}
 }
@@ -158,8 +158,8 @@ type GameStore interface {
 	SaveInstance(instance *GameInstance) error
 	GetInstanceById(id string) (*GameInstance, error)
 
-	GetInstancesByGame(gameName string, state... MetaState) (*[]GameInstance, error)
-	GetInstancesByGameVersion(game Game, state... MetaState) (*[]GameInstance, error)
+	GetInstancesByGame(gameName string, state ...MetaState) (*[]GameInstance, error)
+	GetInstancesByGameVersion(game Game, state ...MetaState) (*[]GameInstance, error)
 
 	DeleteGameInstance(instance *GameInstance) error
 }

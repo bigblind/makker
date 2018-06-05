@@ -1,14 +1,13 @@
 package wordsplash
 
 import (
-	"net/http"
 	"encoding/json"
+	"net/http"
 )
 
-type result struct{
+type result struct {
 	Found int `json:"found"`
 }
-
 
 func wordExists(word string) bool {
 	resp, _ := http.Get("http://www.anagramica.com/lookup/")

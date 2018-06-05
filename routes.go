@@ -1,11 +1,11 @@
 package makker
 
 import (
-	"github.com/gorilla/mux"
-	"github.com/bigblind/makker/users"
-	"github.com/bigblind/makker/games"
-	"github.com/bigblind/makker/di"
 	"github.com/bigblind/makker/channels"
+	"github.com/bigblind/makker/di"
+	"github.com/bigblind/makker/games"
+	"github.com/bigblind/makker/users"
+	"github.com/gorilla/mux"
 )
 
 func GetRouter() *mux.Router {

@@ -152,7 +152,7 @@ func TestGamesInteractor_MakeMove(t *testing.T) {
 
 	inst2, err := int.MakeMove("instanceId", "player2", "MoveData")
 	req.NoError(err)
-	req.Equal(move, inst2.Moves[len(inst.Moves) - 1])
+	req.Equal(move, inst2.Moves[len(inst.Moves)-1])
 	g.AssertExpectations(t)
 	mgs.AssertExpectations(t)
 }

@@ -1,11 +1,11 @@
 package channels
 
 import (
-	"net/http"
 	"context"
+	"net/http"
 )
 
-type Channel interface{
+type Channel interface {
 	Public() bool
 	Namespace() string
 	Id() string
@@ -27,4 +27,3 @@ type ChannelProvider interface {
 }
 
 type ProviderConstructor func(ctx context.Context) ChannelProvider
-

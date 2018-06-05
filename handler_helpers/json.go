@@ -1,8 +1,8 @@
 package handler_helpers
 
 import (
-	"net/http"
 	"encoding/json"
+	"net/http"
 )
 
 type errorResponse struct {

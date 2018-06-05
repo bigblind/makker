@@ -1,14 +1,14 @@
 package games
 
 import (
-	"net/http"
-	"github.com/bigblind/makker/users"
-	"github.com/bigblind/makker/di"
-	"github.com/gorilla/mux"
-	"github.com/bigblind/makker/handler_helpers"
-	"github.com/bigblind/makker/channels"
 	"encoding/json"
+	"github.com/bigblind/makker/channels"
+	"github.com/bigblind/makker/di"
+	"github.com/bigblind/makker/handler_helpers"
+	"github.com/bigblind/makker/users"
+	"github.com/gorilla/mux"
 	"io/ioutil"
+	"net/http"
 )
 
 func CreateInstace(w http.ResponseWriter, r *http.Request) {
@@ -30,7 +30,7 @@ func CreateInstace(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func GetInstance(w http.ResponseWriter, r *http.Request)  {
+func GetInstance(w http.ResponseWriter, r *http.Request) {
 	err := di.Graph.Invoke(func(cp channels.ChannelProvider) {
 		inter := NewInteractor(r.Context())
 
@@ -47,7 +47,7 @@ func GetInstance(w http.ResponseWriter, r *http.Request)  {
 	}
 }
 
-func StartGame(w http.ResponseWriter, r *http.Request)  {
+func StartGame(w http.ResponseWriter, r *http.Request) {
 	inter := NewInteractor(r.Context())
 
 	uid := users.GetUserId(r)
@@ -93,6 +93,7 @@ func MakeMove(w http.ResponseWriter, r *http.Request) {
 			handler_helpers.RespondWithJSON(w, 200, inst)
 		}
 	})
+
 	if err != nil {
 		handler_helpers.RespondWithJSONError(w, http.StatusInternalServerError, err)
 	}

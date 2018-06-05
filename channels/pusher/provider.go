@@ -1,30 +1,30 @@
 package pusher
 
 import (
-	"github.com/pusher/pusher-http-go"
+	"context"
 	"github.com/bigblind/makker/channels"
 	"github.com/bigblind/makker/config"
-	"go.uber.org/dig"
-	"net/http"
 	"github.com/bigblind/makker/di"
-	"context"
-	"io/ioutil"
 	"github.com/bigblind/makker/handler_helpers"
 	"github.com/bigblind/makker/users"
-	"strings"
+	"github.com/pusher/pusher-http-go"
+	"go.uber.org/dig"
+	"io/ioutil"
+	"net/http"
 	"net/url"
+	"strings"
 )
 
-func init()  {
+func init() {
 	di.Graph.Provide(newChannelProvider)
 }
 
 type PusherProvider struct {
 	HttpClientConstructor func(ctx context.Context) *http.Client
 
-	JoinListeners map[string][]channels.EventHandler
+	JoinListeners  map[string][]channels.EventHandler
 	LeaveListeners map[string][]channels.EventHandler
-	UserCheckers map[string]channels.ChannelAuthChecker
+	UserCheckers   map[string]channels.ChannelAuthChecker
 }
 
 type channelProviderParams struct {
@@ -33,14 +33,13 @@ type channelProviderParams struct {
 	ClientConstructor func(ctx context.Context) *http.Client `optional:"true"`
 }
 
-
 func newChannelProvider(params channelProviderParams) channels.ChannelProvider {
 	var pp PusherProvider
 	pp = PusherProvider{
 		HttpClientConstructor: params.ClientConstructor,
-		JoinListeners: make(map[string][]channels.EventHandler),
-		LeaveListeners: make(map[string][]channels.EventHandler),
-		UserCheckers: make(map[string]channels.ChannelAuthChecker),
+		JoinListeners:         make(map[string][]channels.EventHandler),
+		LeaveListeners:        make(map[string][]channels.EventHandler),
+		UserCheckers:          make(map[string]channels.ChannelAuthChecker),
 	}
 
 	return pp
@@ -48,11 +47,11 @@ func newChannelProvider(params channelProviderParams) channels.ChannelProvider {
 
 func (pp PusherProvider) client(ctx context.Context) pusher.Client {
 	c := pusher.Client{
-		AppId: config.PusherAppId,
-		Key: config.PusherKey,
-		Secret: config.PusherSecret,
+		AppId:   config.PusherAppId,
+		Key:     config.PusherKey,
+		Secret:  config.PusherSecret,
 		Cluster: config.PusherCluster,
-		Secure: true,
+		Secure:  true,
 	}
 
 	if pp.HttpClientConstructor != nil {
@@ -65,16 +64,16 @@ func (pp PusherProvider) client(ctx context.Context) pusher.Client {
 func (pp PusherProvider) NewChannel(ctx context.Context, namespace, id string, public bool) channels.Channel {
 	c := pp.client(ctx)
 	pc := PusherChannel{
-		client: &c,
+		client:    &c,
 		namespace: namespace,
-		id: id,
-		public: public,
+		id:        id,
+		public:    public,
 	}
 
 	return &pc
 }
 
-func (pp PusherProvider) ChannelFromClientId(ctx context.Context, id string) channels.Channel  {
+func (pp PusherProvider) ChannelFromClientId(ctx context.Context, id string) channels.Channel {
 	// Public channels have the format
 	//    {namespace}-{id}
 	//
@@ -86,7 +85,7 @@ func (pp PusherProvider) ChannelFromClientId(ctx context.Context, id string) cha
 	if parts[0] == "presence" {
 		return pp.NewChannel(ctx, parts[1], parts[2], false)
 	} else {
-		return  pp.NewChannel(ctx, parts[0], parts[1], true)
+		return pp.NewChannel(ctx, parts[0], parts[1], true)
 	}
 }
 
@@ -114,7 +113,7 @@ func (pp PusherProvider) OnLeave(namespace string, handler channels.EventHandler
 	pp.LeaveListeners[namespace] = listeners
 }
 
-func (pp PusherProvider) SetUserChecker(namespace string, checker channels.ChannelAuthChecker)  {
+func (pp PusherProvider) SetUserChecker(namespace string, checker channels.ChannelAuthChecker) {
 	pp.UserCheckers[namespace] = checker
 }
 
@@ -127,7 +126,7 @@ func (pp PusherProvider) HandleChannelAuth(w http.ResponseWriter, r *http.Reques
 
 	uid := users.GetUserId(r)
 	m := pusher.MemberData{
-		UserId: uid,
+		UserId:   uid,
 		UserInfo: make(map[string]string),
 	}
 
@@ -192,4 +191,3 @@ func (pp PusherProvider) HadleWebHook(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 }
-

@@ -1,8 +1,8 @@
 package wordsplash
 
 import (
-	"strings"
 	"math/rand"
+	"strings"
 )
 
 var consonants = map[string]float64{
@@ -28,7 +28,6 @@ var consonants = map[string]float64{
 	"x": 0.002423302476615131,
 	"z": 0.0011954958884634647,
 }
-
 
 var vowels = map[string]float64{
 	"a": 0.21435695538057742,
@@ -63,15 +62,15 @@ func addLetter(current, action string) string {
 	nc := n - nv
 
 	if nv < 2 {
-		if 9 - n == 2 - nv {
-			for i := 0; i < 2 - nv; i++ {
+		if 9-n == 2-nv {
+			for i := 0; i < 2-nv; i++ {
 				current = addLetterFromSet(current, vowels)
 				return current
 			}
 		}
 
-		if 9 - n == 2 - nc {
-			for i := 0; i < 2 - nc; i++ {
+		if 9-n == 2-nc {
+			for i := 0; i < 2-nc; i++ {
 				current = addLetterFromSet(current, consonants)
 				return current
 			}
@@ -93,4 +92,3 @@ func addLetterFromSet(s string, set map[string]float64) string {
 
 	return "e"
 }
-

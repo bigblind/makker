@@ -1,50 +1,50 @@
 package wordsplash
 
 import (
+	"fmt"
 	"github.com/bigblind/makker/games"
 	"time"
-	"fmt"
 )
 
-type wordSplash struct {}
+type wordSplash struct{}
 
 type gameState struct {
-	Round int `json:"round"`
-	Letters string `json:"letters"`
-	Stage string `json:"stage"`
-	Ready []bool `json:"ready"`
-	RoundStarted time.Time `json:"round_started"`
-	Submissions []string `json:"submissions"`
-	SubmissionExists []bool `json:"submission_exists"`
+	Round            int       `json:"round"`
+	Letters          string    `json:"letters"`
+	Stage            string    `json:"stage"`
+	Ready            []bool    `json:"ready"`
+	RoundStarted     time.Time `json:"round_started"`
+	Submissions      []string  `json:"submissions"`
+	SubmissionExists []bool    `json:"submission_exists"`
 }
 
 type privateState struct {
 	Submission string
-	Exists bool
+	Exists     bool
 }
 
 func (wordSplash) Info() games.GameInfo {
 	return games.GameInfo{
-		Name: "WordSplash",
-		Version: 1,
-		MinPlayers: 2,
-		MaxPlayers: 4,
+		Name:             "WordSplash",
+		Version:          1,
+		MinPlayers:       2,
+		MaxPlayers:       4,
 		LoseOnDisconnect: true,
 	}
 }
 
 func (wordSplash) InitializeState(state *games.GameState) {
 	state.SharedState = gameState{
-		Round: 0,
-		Letters: "",
-		Ready: make([]bool, len(state.Players)),
-		Submissions: make([]string, len(state.Players)),
+		Round:            0,
+		Letters:          "",
+		Ready:            make([]bool, len(state.Players)),
+		Submissions:      make([]string, len(state.Players)),
 		SubmissionExists: make([]bool, len(state.Players)),
-		Stage: "picking",
+		Stage:            "picking",
 	}
 }
 
-func (wordSplash) HandleUpdate(g *games.GameState, m games.Move) (error) {
+func (wordSplash) HandleUpdate(g *games.GameState, m games.Move) error {
 	state := (g.SharedState.(gameState))
 	np := len(g.Players)
 
@@ -73,7 +73,7 @@ func (wordSplash) HandleUpdate(g *games.GameState, m games.Move) (error) {
 			exists := wordExists(action)
 			g.Players[m.Player].PrivateState = privateState{
 				Submission: action,
-				Exists: exists,
+				Exists:     exists,
 			}
 			state.Ready[m.Player] = true
 		}
@@ -113,17 +113,15 @@ func all(bs []bool) bool {
 
 func (wordSplash) CanPlayerMove(playerIndex int, g *games.GameState) bool {
 	if g.SharedState.(gameState).Stage == "picking" {
-		return playerIndex == g.SharedState.(gameState).Round % len(g.Players)
+		return playerIndex == g.SharedState.(gameState).Round%len(g.Players)
 	}
 	return !g.SharedState.(gameState).Ready[playerIndex]
 }
 
 func (wordSplash) IsGameOver(g *games.GameState) bool {
-	return g.SharedState.(gameState).Round == len(g.Players) * 2
+	return g.SharedState.(gameState).Round == len(g.Players)*2
 }
 
 func init() {
 	games.Registry.Register(wordSplash{})
 }
-
-

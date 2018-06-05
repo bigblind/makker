@@ -7,7 +7,7 @@ import (
 
 type PusherChannel struct {
 	namespace, id string
-	public bool
+	public        bool
 
 	client *pusher.Client
 }
