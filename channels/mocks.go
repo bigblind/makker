@@ -15,6 +15,10 @@ func (mcp *MockChannelProvider) NewChannel(ctx context.Context, namespace, id st
 	return vals.Get(0).(Channel)
 }
 
+func (mcp *MockChannelProvider) EmitBatch(ctx context.Context, events []Event) {
+	mcp.Called(ctx, events)
+}
+
 func (mcp *MockChannelProvider) OnJoin(namespace string, handler EventHandler) {
 	mcp.Called(namespace, handler)
 }
