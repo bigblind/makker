@@ -2,11 +2,13 @@ package appengine
 
 import (
 	"google.golang.org/appengine"
+	"google.golang.org/appengine/urlfetch"
 	"net/http"
 
 	"github.com/bigblind/makker"
 	_ "github.com/bigblind/makker/channels/pusher" // so Pusher gets injected
 	"github.com/bigblind/makker/di"
+	"context"
 )
 
 func init() {
@@ -22,4 +24,9 @@ func init() {
 
 func initDeps() {
 	di.Graph.Provide(NewGameStore)
+	di.Graph.Provide(func() func(ctx context.Context) *http.Client {
+		return func(ctx context.Context) *http.Client {
+			return urlfetch.Client(ctx)
+		}
+	})
 }
