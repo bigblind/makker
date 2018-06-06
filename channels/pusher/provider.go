@@ -85,7 +85,7 @@ func (pp PusherProvider) EmitBatch(ctx context.Context, events []channels.Event)
 			Data: string(dataBytes),
 		}
 	}
-	
+
 	pp.client(ctx).TriggerBatch(pevents)
 }
 

@@ -115,6 +115,8 @@ func (inter GamesInteractor) joinInstance(ctx context.Context, inst *GameInstanc
 
 	inst.AddPlayer(userId)
 
+	inter.EmitPublic(ctx, inst, "player_join", map[string]string{"user_id": userId})
+
 	return inter.store.SaveInstance(ctx, inst)
 }
 
@@ -125,6 +127,8 @@ func (inter GamesInteractor) LeaveGame(ctx context.Context, instanceId, userId s
 	}
 
 	inst.RemovePlayer(userId)
+
+	inter.EmitPublic(ctx, inst, "player_leave", map[string]string{"user_id": userId})
 
 	return inter.store.SaveInstance(ctx, inst)
 }
@@ -143,7 +147,14 @@ func (inter GamesInteractor) StartGame(ctx context.Context, instanceId, userId s
 	inst.MetaState = InProgress
 	inst.Game().InitializeState(&inst.State)
 
-	return inter.store.SaveInstance(ctx, inst)
+	err = inter.store.SaveInstance(ctx, inst)
+	if err != nil {
+		return err
+	}
+
+	inter.EmitMetaState(ctx, inst)
+
+	return nil
 }
 
 func (inter GamesInteractor) GetInstance(ctx context.Context, instanceId string, userId ...string) (instanceResponse, error) {
@@ -199,6 +210,40 @@ func (inter GamesInteractor) MakeMove(ctx context.Context, instanceId, userId st
 		return instanceToResponse(inst, userId, inter.cp), err
 	}
 
+	events := make([]channels.Event, 0, len(inst.State.Players)*2 + 1)
+
+	pubc := inter.cp.NewChannel(ctx, "games", inst.Channels("").Public, true)
+	events = append(events, channels.Event{
+		Channel: pubc,
+		Name: "state",
+		Data: inst.State.SharedState,
+	})
+
+	for _, p := range inst.State.Players {
+		privc := inter.cp.NewChannel(ctx, "games", inst.Channels(p.UserId).Private, false)
+
+		events = append(events, channels.Event{
+			Channel: privc,
+			Name: "private_state",
+			Data: p.PrivateState,
+		},
+		channels.Event{
+			Channel: pubc,
+			Name: "public_state",
+			Data: map[string]interface{}{
+				"user_id": p.UserId,
+				"data": p.PublicState,
+				"score": p.Score,
+			},
+		})
+	}
+
+	inter.cp.EmitBatch(ctx, events)
+
+	if inst.MetaState == GameOver {
+		inter.EmitMetaState(ctx, inst)
+	}
+
 	return instanceToResponse(inst, userId, inter.cp), nil
 }
 
@@ -214,6 +259,24 @@ func (inter GamesInteractor) ListInstances(ctx context.Context, gname string, st
 	}
 
 	return &ris, nil
+}
+
+func (inter GamesInteractor) EmitMetaState(ctx context.Context, inst *GameInstance)  {
+	inter.EmitPublic(ctx, inst, "meta_state", map[string]MetaState{"state": inst.MetaState})
+}
+
+func (inter GamesInteractor) EmitPublic(ctx context.Context, inst *GameInstance, event string, data interface{}) {
+	cs := inst.Channels("")
+
+	c := inter.cp.NewChannel(ctx, "games", cs.Public, true)
+	c.Emit(event, data)
+}
+
+func (inter GamesInteractor) EmitPrivate(ctx context.Context, inst *GameInstance, userId, event string, data interface{}) {
+	cs := inst.Channels(userId)
+
+	c := inter.cp.NewChannel(ctx, "games", cs.Private, true)
+	c.Emit(event, data)
 }
 
 type instanceResponsePlayer struct {
