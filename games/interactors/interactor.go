@@ -3,9 +3,9 @@ package interactors
 import (
 	"context"
 	"fmt"
-	"github.com/bigblind/makker/games"
 	"github.com/bigblind/makker/channels"
 	"github.com/bigblind/makker/di"
+	"github.com/bigblind/makker/games"
 	"strings"
 	"time"
 )
@@ -211,13 +211,13 @@ func (inter GamesInteractor) MakeMove(ctx context.Context, instanceId, userId st
 		return instanceToResponse(inst, userId, inter.cp), err
 	}
 
-	events := make([]channels.Event, 0, len(inst.State.Players)*2 + 1)
+	events := make([]channels.Event, 0, len(inst.State.Players)*2+1)
 
 	pubc := inter.cp.NewChannel(ctx, "games", inst.Channels("").Public, true)
 	events = append(events, channels.Event{
 		Channel: pubc,
-		Name: "state",
-		Data: inst.State.SharedState,
+		Name:    "state",
+		Data:    inst.State.SharedState,
 	})
 
 	for _, p := range inst.State.Players {
@@ -225,18 +225,18 @@ func (inter GamesInteractor) MakeMove(ctx context.Context, instanceId, userId st
 
 		events = append(events, channels.Event{
 			Channel: privc,
-			Name: "private_state",
-			Data: p.PrivateState,
+			Name:    "private_state",
+			Data:    p.PrivateState,
 		},
-		channels.Event{
-			Channel: pubc,
-			Name: "public_state",
-			Data: map[string]interface{}{
-				"user_id": p.UserId,
-				"data": p.PublicState,
-				"score": p.Score,
-			},
-		})
+			channels.Event{
+				Channel: pubc,
+				Name:    "public_state",
+				Data: map[string]interface{}{
+					"user_id": p.UserId,
+					"data":    p.PublicState,
+					"score":   p.Score,
+				},
+			})
 	}
 
 	inter.cp.EmitBatch(ctx, events)
@@ -262,7 +262,7 @@ func (inter GamesInteractor) ListInstances(ctx context.Context, gname string, st
 	return &ris, nil
 }
 
-func (inter GamesInteractor) EmitMetaState(ctx context.Context, inst *games.GameInstance)  {
+func (inter GamesInteractor) EmitMetaState(ctx context.Context, inst *games.GameInstance) {
 	inter.EmitPublic(ctx, inst, "meta_state", map[string]games.MetaState{"state": inst.MetaState})
 }
 
@@ -287,8 +287,8 @@ type instanceResponsePlayer struct {
 
 type instanceResponse struct {
 	Id       string                   `json:"id"`
-	GameInfo games.GameInfo                 `json:"game_info"`
-	State    games.MetaState                `json:"state"`
+	GameInfo games.GameInfo           `json:"game_info"`
+	State    games.MetaState          `json:"state"`
 	Players  []instanceResponsePlayer `json:"players"`
 
 	PublicChannel  string `json:"public_channel"`

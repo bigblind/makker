@@ -2,12 +2,12 @@ package handlers
 
 import (
 	"encoding/json"
+	"github.com/bigblind/makker/games/interactors"
 	"github.com/bigblind/makker/handler_helpers"
 	"github.com/bigblind/makker/users"
 	"github.com/gorilla/mux"
 	"io/ioutil"
 	"net/http"
-	"github.com/bigblind/makker/games/interactors"
 )
 
 var interactor = interactors.Interactor

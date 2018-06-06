@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 	"github.com/bigblind/makker/channels"
+	"github.com/bigblind/makker/games"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"testing"
-	"github.com/bigblind/makker/games"
 )
 
 var ctx = context.TODO()

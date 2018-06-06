@@ -2,6 +2,7 @@ package pusher
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/bigblind/makker/channels"
 	"github.com/bigblind/makker/config"
 	"github.com/bigblind/makker/di"
@@ -13,7 +14,6 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"encoding/json"
 )
 
 func init() {
@@ -74,15 +74,15 @@ func (pp PusherProvider) NewChannel(ctx context.Context, namespace, id string, p
 	return &pc
 }
 
-func (pp PusherProvider) EmitBatch(ctx context.Context, events []channels.Event)  {
+func (pp PusherProvider) EmitBatch(ctx context.Context, events []channels.Event) {
 	pevents := make([]pusher.Event, len(events))
 	for i, e := range events {
 		dataBytes, _ := json.Marshal(e.Data)
 
 		pevents[i] = pusher.Event{
 			Channel: e.Channel.ClientId(),
-			Name: e.Name,
-			Data: string(dataBytes),
+			Name:    e.Name,
+			Data:    string(dataBytes),
 		}
 	}
 

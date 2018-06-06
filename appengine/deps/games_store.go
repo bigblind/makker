@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"context"
 	"encoding/gob"
+	"github.com/bigblind/makker/di"
 	"github.com/bigblind/makker/games"
 	"google.golang.org/appengine/datastore"
-	"github.com/bigblind/makker/di"
 )
 
-func init()  {
+func init() {
 	di.Graph.Provide(NewGameStore)
 }
 

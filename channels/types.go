@@ -16,8 +16,8 @@ type Channel interface {
 
 type Event struct {
 	Channel Channel
-	Name string
-	Data interface{}
+	Name    string
+	Data    interface{}
 }
 
 type EventHandler func(ctx context.Context, channel Channel, userId, socketId string)
