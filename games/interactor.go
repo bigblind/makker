@@ -9,8 +9,16 @@ import (
 	"time"
 )
 
+var interactor GamesInteractor
+
 func init() {
-	di.Graph.Invoke(func(gs GameStore, cp channels.ChannelProvider) {
+	interactor = NewInteractor()
+
+	initChannels()
+}
+
+func initChannels() {
+	err := di.Graph.Invoke(func(gs GameStore, cp channels.ChannelProvider) {
 
 		cp.SetUserChecker("games", func(ctx context.Context, channel channels.Channel, userId string) error {
 
@@ -26,9 +34,8 @@ func init() {
 				return err
 			}
 
-			inter := NewInteractor()
 			if inst.MetaState == WaitingForPlayers && !inst.HasPlayer(userId) {
-				return inter.joinInstance(ctx, inst, userId)
+				return interactor.joinInstance(ctx, inst, userId)
 			}
 
 			if !inst.HasPlayer(userId) {
@@ -47,6 +54,10 @@ func init() {
 			inter.LeaveGame(ctx, instId, userId)
 		})
 	})
+
+	if err != nil {
+		panic(err)
+	}
 }
 
 type GamesInteractor struct {
@@ -56,12 +67,16 @@ type GamesInteractor struct {
 
 func NewInteractor() GamesInteractor {
 	var inter GamesInteractor
-	di.Graph.Invoke(func(gs GameStore, cp channels.ChannelProvider) {
+	err := di.Graph.Invoke(func(gs GameStore, cp channels.ChannelProvider) {
 		inter = GamesInteractor{
 			gs,
 			cp,
 		}
 	})
+
+	if err != nil {
+		panic(err)
+	}
 
 	return inter
 }
