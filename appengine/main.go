@@ -2,17 +2,16 @@ package appengine
 
 import (
 	"google.golang.org/appengine"
-	"google.golang.org/appengine/urlfetch"
 	"net/http"
 
+	// set up deps
+	_ "deps"
+	_ "github.com/bigblind/makker/channels/pusher"
+
 	"github.com/bigblind/makker"
-	_ "github.com/bigblind/makker/channels/pusher" // so Pusher gets injected
-	"github.com/bigblind/makker/di"
-	"context"
 )
 
 func init() {
-	initDeps()
 	router := makker.GetRouter()
 	router.Use(contextMiddleware)
 	http.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -20,13 +19,4 @@ func init() {
 	}))
 
 	appengine.Main()
-}
-
-func initDeps() {
-	di.Graph.Provide(NewGameStore)
-	di.Graph.Provide(func() func(ctx context.Context) *http.Client {
-		return func(ctx context.Context) *http.Client {
-			return urlfetch.Client(ctx)
-		}
-	})
 }

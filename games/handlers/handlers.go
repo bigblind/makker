@@ -1,4 +1,4 @@
-package games
+package handlers
 
 import (
 	"encoding/json"
@@ -7,7 +7,10 @@ import (
 	"github.com/gorilla/mux"
 	"io/ioutil"
 	"net/http"
+	"github.com/bigblind/makker/games/interactors"
 )
+
+var interactor = interactors.Interactor
 
 func ListInstancesByGame(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)

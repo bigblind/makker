@@ -1,24 +1,25 @@
-package games
+package interactors
 
 import (
 	"context"
 	"fmt"
+	"github.com/bigblind/makker/games"
 	"github.com/bigblind/makker/channels"
 	"github.com/bigblind/makker/di"
 	"strings"
 	"time"
 )
 
-var interactor GamesInteractor
+var Interactor GamesInteractor
 
 func init() {
-	interactor = NewInteractor()
+	Interactor = NewInteractor()
 
 	initChannels()
 }
 
 func initChannels() {
-	err := di.Graph.Invoke(func(gs GameStore, cp channels.ChannelProvider) {
+	err := di.Graph.Invoke(func(gs games.GameStore, cp channels.ChannelProvider) {
 
 		cp.SetUserChecker("games", func(ctx context.Context, channel channels.Channel, userId string) error {
 
@@ -34,8 +35,8 @@ func initChannels() {
 				return err
 			}
 
-			if inst.MetaState == WaitingForPlayers && !inst.HasPlayer(userId) {
-				return interactor.joinInstance(ctx, inst, userId)
+			if inst.MetaState == games.WaitingForPlayers && !inst.HasPlayer(userId) {
+				return Interactor.joinInstance(ctx, inst, userId)
 			}
 
 			if !inst.HasPlayer(userId) {
@@ -61,13 +62,13 @@ func initChannels() {
 }
 
 type GamesInteractor struct {
-	store GameStore
+	store games.GameStore
 	cp    channels.ChannelProvider
 }
 
 func NewInteractor() GamesInteractor {
 	var inter GamesInteractor
-	err := di.Graph.Invoke(func(gs GameStore, cp channels.ChannelProvider) {
+	err := di.Graph.Invoke(func(gs games.GameStore, cp channels.ChannelProvider) {
 		inter = GamesInteractor{
 			gs,
 			cp,
@@ -82,13 +83,13 @@ func NewInteractor() GamesInteractor {
 }
 
 func (inter GamesInteractor) CreateInstance(ctx context.Context, gameName, userId string) (instanceResponse, error) {
-	g, err := Registry.GetGameLatestVersion(gameName)
+	g, err := games.Registry.GetGameLatestVersion(gameName)
 
 	if err != nil {
 		return instanceResponse{}, err
 	}
 
-	inst := NewInstance(g, userId)
+	inst := games.NewInstance(g, userId)
 	inst.AddPlayer(userId)
 
 	err = inter.store.SaveInstance(ctx, inst)
@@ -108,7 +109,7 @@ func (inter GamesInteractor) JoinGame(ctx context.Context, instanceId, userId st
 	return inter.joinInstance(ctx, inst, userId)
 }
 
-func (inter GamesInteractor) joinInstance(ctx context.Context, inst *GameInstance, userId string) error {
+func (inter GamesInteractor) joinInstance(ctx context.Context, inst *games.GameInstance, userId string) error {
 	if inst.HasPlayer(userId) {
 		return fmt.Errorf("%v is already in the game.", userId)
 	}
@@ -144,7 +145,7 @@ func (inter GamesInteractor) StartGame(ctx context.Context, instanceId, userId s
 	}
 
 	inst.ShufflePlayers()
-	inst.MetaState = InProgress
+	inst.MetaState = games.InProgress
 	inst.Game().InitializeState(&inst.State)
 
 	err = inter.store.SaveInstance(ctx, inst)
@@ -188,7 +189,7 @@ func (inter GamesInteractor) MakeMove(ctx context.Context, instanceId, userId st
 		return instanceToResponse(inst, userId, inter.cp), fmt.Errorf("you can't make a move right now")
 	}
 
-	move := Move{
+	move := games.Move{
 		Data:   moveData,
 		Player: int8(idx),
 		Time:   time.Now(),
@@ -202,7 +203,7 @@ func (inter GamesInteractor) MakeMove(ctx context.Context, instanceId, userId st
 	inst.Moves = append(inst.Moves, move)
 
 	if game.IsGameOver(&inst.State) {
-		inst.MetaState = GameOver
+		inst.MetaState = games.GameOver
 	}
 
 	err = inter.store.SaveInstance(ctx, inst)
@@ -240,14 +241,14 @@ func (inter GamesInteractor) MakeMove(ctx context.Context, instanceId, userId st
 
 	inter.cp.EmitBatch(ctx, events)
 
-	if inst.MetaState == GameOver {
+	if inst.MetaState == games.GameOver {
 		inter.EmitMetaState(ctx, inst)
 	}
 
 	return instanceToResponse(inst, userId, inter.cp), nil
 }
 
-func (inter GamesInteractor) ListInstances(ctx context.Context, gname string, state ...MetaState) (*[]instanceResponse, error) {
+func (inter GamesInteractor) ListInstances(ctx context.Context, gname string, state ...games.MetaState) (*[]instanceResponse, error) {
 	insts, err := inter.store.GetInstancesByGame(ctx, gname, state...)
 	if err != nil {
 		return nil, err
@@ -261,18 +262,18 @@ func (inter GamesInteractor) ListInstances(ctx context.Context, gname string, st
 	return &ris, nil
 }
 
-func (inter GamesInteractor) EmitMetaState(ctx context.Context, inst *GameInstance)  {
-	inter.EmitPublic(ctx, inst, "meta_state", map[string]MetaState{"state": inst.MetaState})
+func (inter GamesInteractor) EmitMetaState(ctx context.Context, inst *games.GameInstance)  {
+	inter.EmitPublic(ctx, inst, "meta_state", map[string]games.MetaState{"state": inst.MetaState})
 }
 
-func (inter GamesInteractor) EmitPublic(ctx context.Context, inst *GameInstance, event string, data interface{}) {
+func (inter GamesInteractor) EmitPublic(ctx context.Context, inst *games.GameInstance, event string, data interface{}) {
 	cs := inst.Channels("")
 
 	c := inter.cp.NewChannel(ctx, "games", cs.Public, true)
 	c.Emit(event, data)
 }
 
-func (inter GamesInteractor) EmitPrivate(ctx context.Context, inst *GameInstance, userId, event string, data interface{}) {
+func (inter GamesInteractor) EmitPrivate(ctx context.Context, inst *games.GameInstance, userId, event string, data interface{}) {
 	cs := inst.Channels(userId)
 
 	c := inter.cp.NewChannel(ctx, "games", cs.Private, true)
@@ -286,15 +287,15 @@ type instanceResponsePlayer struct {
 
 type instanceResponse struct {
 	Id       string                   `json:"id"`
-	GameInfo GameInfo                 `json:"game_info"`
-	State    MetaState                `json:"state"`
+	GameInfo games.GameInfo                 `json:"game_info"`
+	State    games.MetaState                `json:"state"`
 	Players  []instanceResponsePlayer `json:"players"`
 
 	PublicChannel  string `json:"public_channel"`
 	PrivateChannel string `json:"private_channel"`
 }
 
-func instanceToResponse(i *GameInstance, uid string, cp channels.ChannelProvider) instanceResponse {
+func instanceToResponse(i *games.GameInstance, uid string, cp channels.ChannelProvider) instanceResponse {
 	chanIds := i.Channels(uid)
 	ps := make([]instanceResponsePlayer, len(i.State.Players))
 	for j, p := range i.State.Players {

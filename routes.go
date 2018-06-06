@@ -3,7 +3,7 @@ package makker
 import (
 	"github.com/bigblind/makker/channels"
 	"github.com/bigblind/makker/di"
-	"github.com/bigblind/makker/games"
+	games "github.com/bigblind/makker/games/handlers"
 	"github.com/bigblind/makker/users"
 	"github.com/gorilla/mux"
 )

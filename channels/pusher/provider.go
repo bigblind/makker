@@ -86,7 +86,8 @@ func (pp PusherProvider) EmitBatch(ctx context.Context, events []channels.Event)
 		}
 	}
 
-	pp.client(ctx).TriggerBatch(pevents)
+	c := pp.client(ctx)
+	(&c).TriggerBatch(pevents)
 }
 
 func (pp PusherProvider) ChannelFromClientId(ctx context.Context, id string) channels.Channel {

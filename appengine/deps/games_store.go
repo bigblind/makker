@@ -1,4 +1,4 @@
-package appengine
+package deps
 
 import (
 	"bytes"
@@ -6,7 +6,12 @@ import (
 	"encoding/gob"
 	"github.com/bigblind/makker/games"
 	"google.golang.org/appengine/datastore"
+	"github.com/bigblind/makker/di"
 )
+
+func init()  {
+	di.Graph.Provide(NewGameStore)
+}
 
 const gameInstanceKind = "gameInstance"
 
