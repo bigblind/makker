@@ -33,3 +33,38 @@ func (mgs MockGamesStore) DeleteGameInstance(ctx context.Context, instance *Game
 	args := mgs.Called(ctx, instance)
 	return args.Error(0)
 }
+
+type testGame struct {
+	info GameInfo
+	mock.Mock
+}
+
+func NewMockGame(name string, version int) testGame {
+	return testGame{info: GameInfo{
+		Name:    name,
+		Version: version,
+	}}
+}
+
+func (tg testGame) InitializeState(state *GameState) {
+	tg.Called(state)
+}
+
+func (tg testGame) HandleUpdate(g *GameState, m Move) error {
+	args := tg.Called(g, m)
+	return args.Error(0)
+}
+
+func (tg testGame) CanPlayerMove(playerIndex int, g *GameState) bool {
+	args := tg.Called(playerIndex, g)
+	return args.Bool(0)
+}
+
+func (tg testGame) IsGameOver(g *GameState) bool {
+	args := tg.Called(g)
+	return args.Bool(0)
+}
+
+func (tg testGame) Info() GameInfo {
+	return tg.info
+}

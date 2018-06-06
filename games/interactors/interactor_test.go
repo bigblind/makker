@@ -7,12 +7,13 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"testing"
+	"github.com/bigblind/makker/games"
 )
 
 var ctx = context.TODO()
 
-func createInteractor() (GamesInteractor, *MockGamesStore, *channels.MockChannelProvider) {
-	mgs := new(MockGamesStore)
+func createInteractor() (GamesInteractor, *games.MockGamesStore, *channels.MockChannelProvider) {
+	mgs := new(games.MockGamesStore)
 	mcp := new(channels.MockChannelProvider)
 	return GamesInteractor{mgs, mcp}, mgs, mcp
 }
@@ -20,10 +21,10 @@ func createInteractor() (GamesInteractor, *MockGamesStore, *channels.MockChannel
 func TestGamesInteractor_CreateInstance(t *testing.T) {
 	req := require.New(t)
 	int, mgs, mcp := createInteractor()
-	game := makeGame("myGame", 1)
-	game2 := makeGame("myGame", 2)
-	Registry.Register(game)
-	Registry.Register(game2)
+	game := games.NewMockGame("myGame", 1)
+	game2 := games.NewMockGame("myGame", 2)
+	games.Registry.Register(game)
+	games.Registry.Register(game2)
 
 	pubc := channels.NewMockChannel("games", "publicId", true)
 	privc := channels.NewMockChannel("games", "privateId", false)
@@ -59,9 +60,9 @@ func TestGamesInteractor_CreateInstance(t *testing.T) {
 func TestGamesInteractor_JoinGame(t *testing.T) {
 	req := require.New(t)
 	int, mgs, _ := createInteractor()
-	g := makeGame("myGame", 1)
-	Registry.Register(g)
-	inst := NewInstance(g, "adminId")
+	g := games.NewMockGame("myGame", 1)
+	games.Registry.Register(g)
+	inst := games.NewInstance(g, "adminId")
 	mgs.On("GetInstanceById", ctx, "instanceId").Return(inst, nil).Once()
 	mgs.On("SaveInstance", ctx, inst).Return(nil).Once()
 
@@ -81,17 +82,17 @@ func TestGamesInteractor_JoinGame(t *testing.T) {
 func TestGamesInteractor_StartGame(t *testing.T) {
 	req := require.New(t)
 	int, mgs, _ := createInteractor()
-	g := makeGame("myGame", 1)
-	inst := NewInstance(g, "UserId")
+	g := games.NewMockGame("myGame", 1)
+	inst := games.NewInstance(g, "UserId")
 	mgs.On("GetInstanceById", ctx, "instanceId").Return(inst, nil).Once()
 	mgs.On("SaveInstance", ctx, inst).Return(nil).Once()
 	g.On("InitializeState", &inst.State).Return()
-	Registry.Register(g)
+	games.Registry.Register(g)
 
 	err := int.StartGame(ctx, "instanceId", "UserId")
 
 	req.NoError(err)
-	req.Equal(InProgress, inst.MetaState)
+	req.Equal(games.InProgress, inst.MetaState)
 	mgs.AssertExpectations(t)
 	g.AssertExpectations(t)
 }
@@ -99,8 +100,8 @@ func TestGamesInteractor_StartGame(t *testing.T) {
 func TestGamesInteractor_GetInstance(t *testing.T) {
 	req := require.New(t)
 	int, mgs, mcp := createInteractor()
-	g := makeGame("myGame", 1)
-	inst := NewInstance(g, "adminId")
+	g := games.NewMockGame("myGame", 1)
+	inst := games.NewInstance(g, "adminId")
 	inst.AddPlayer("player1")
 	inst.AddPlayer("player2")
 	inst.AddPlayer("player3")
@@ -108,7 +109,7 @@ func TestGamesInteractor_GetInstance(t *testing.T) {
 	pubc := channels.NewMockChannel("games", "publicId", true)
 	privc := channels.NewMockChannel("games", "privateId", false)
 
-	inst.MetaState = InProgress
+	inst.MetaState = games.InProgress
 	mgs.On("GetInstanceById", ctx, "instanceId").Return(inst, nil)
 	mcp.On("NewChannel", nil, "games", "", true).Return(pubc)
 	mcp.On("NewChannel", nil, "games", ";", false).Return(privc)
@@ -126,8 +127,8 @@ func TestGamesInteractor_GetInstance(t *testing.T) {
 func TestGamesInteractor_MakeMove(t *testing.T) {
 	req := require.New(t)
 	int, mgs, mcp := createInteractor()
-	g := makeGame("myGame", 1)
-	inst := NewInstance(g, "adminId")
+	g := games.NewMockGame("myGame", 1)
+	inst := games.NewInstance(g, "adminId")
 	inst.AddPlayer("player1")
 	inst.AddPlayer("player2")
 
@@ -141,15 +142,15 @@ func TestGamesInteractor_MakeMove(t *testing.T) {
 	pubc.On("ClientId").Return("pubId")
 	privc.On("ClientId").Return("privId")
 
-	var move Move
+	var move games.Move
 	g.On("HandleUpdate", &inst.State, mock.AnythingOfType("games.Move")).Run(func(args mock.Arguments) {
-		move = args.Get(1).(Move)
+		move = args.Get(1).(games.Move)
 		req.Equal(int8(1), move.Player)
 		req.Equal("MoveData", move.Data)
 	}).Return(nil)
 	g.On("CanPlayerMove", 1, &inst.State).Return(true)
 	g.On("IsGameOver", &inst.State).Return((true))
-	Registry.Register(g)
+	games.Registry.Register(g)
 
 	_, err := int.MakeMove(ctx, "instanceId", "player2", "MoveData")
 	req.NoError(err)

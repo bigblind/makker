@@ -7,46 +7,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type testGame struct {
-	info GameInfo
-	mock.Mock
-}
-
-func (tg testGame) InitializeState(state *GameState) {
-	tg.Called(state)
-}
-
-func (tg testGame) HandleUpdate(g *GameState, m Move) error {
-	args := tg.Called(g, m)
-	return args.Error(0)
-}
-
-func (tg testGame) CanPlayerMove(playerIndex int, g *GameState) bool {
-	args := tg.Called(playerIndex, g)
-	return args.Bool(0)
-}
-
-func (tg testGame) IsGameOver(g *GameState) bool {
-	args := tg.Called(g)
-	return args.Bool(0)
-}
-
-func (tg testGame) Info() GameInfo {
-	return tg.info
-}
-
-func makeGame(name string, version int) testGame {
-	return testGame{info: GameInfo{
-		Name:    name,
-		Version: version,
-	}}
-}
-
 func TestGameRegistry_Register(t *testing.T) {
 	gr := newRegistry()
-	g1 := makeGame("myGame", 1)
-	g2 := makeGame("mySecondGame", 1)
-	g3 := makeGame("mySecondGame", 2)
+	g1 := NewMockGame("myGame", 1)
+	g2 := NewMockGame("mySecondGame", 1)
+	g3 := NewMockGame("mySecondGame", 2)
 
 	gr.Register(g1)
 	gr.Register(g2)
@@ -56,9 +21,9 @@ func TestGameRegistry_Register(t *testing.T) {
 func TestGameRegistry_GetGame(t *testing.T) {
 	req := require.New(t)
 	gr := newRegistry()
-	g1 := makeGame("myGame", 1)
-	g2 := makeGame("mySecondGame", 1)
-	g3 := makeGame("mySecondGame", 2)
+	g1 := NewMockGame("myGame", 1)
+	g2 := NewMockGame("mySecondGame", 1)
+	g3 := NewMockGame("mySecondGame", 2)
 
 	gr.Register(g1)
 	gr.Register(g2)
@@ -86,10 +51,10 @@ func TestGameRegistry_GetGame(t *testing.T) {
 func TestGameRegistry_GetGameLatestVersion(t *testing.T) {
 	req := require.New(t)
 	gr := newRegistry()
-	g1 := makeGame("myGame", 1)
-	g2 := makeGame("myGame", 2)
-	g3 := makeGame("mySecondGame", 1)
-	g4 := makeGame("mySecondGame", 2)
+	g1 := NewMockGame("myGame", 1)
+	g2 := NewMockGame("myGame", 2)
+	g3 := NewMockGame("mySecondGame", 1)
+	g4 := NewMockGame("mySecondGame", 2)
 
 	gr.Register(g1)
 	gr.Register(g2)
