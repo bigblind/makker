@@ -21,14 +21,14 @@ func init() {
 			}
 
 			instId := parts[0]
-			inst, err := gs.GetInstanceById(instId)
+			inst, err := gs.GetInstanceById(ctx, instId)
 			if err != nil {
 				return err
 			}
 
-			inter := NewInteractor(ctx)
+			inter := NewInteractor()
 			if inst.MetaState == WaitingForPlayers && !inst.HasPlayer(userId) {
-				return inter.joinInstance(inst, userId)
+				return inter.joinInstance(ctx, inst, userId)
 			}
 
 			if !inst.HasPlayer(userId) {
@@ -39,12 +39,12 @@ func init() {
 		})
 
 		cp.OnLeave("games", func(ctx context.Context, channel channels.Channel, userId, socketId string) {
-			inter := NewInteractor(ctx)
+			inter := NewInteractor()
 
 			parts := strings.Split(channel.Id(), ";")
 
 			instId := parts[0]
-			inter.LeaveGame(instId, userId)
+			inter.LeaveGame(ctx, instId, userId)
 		})
 	})
 }
@@ -54,11 +54,11 @@ type GamesInteractor struct {
 	cp    channels.ChannelProvider
 }
 
-func NewInteractor(ctx context.Context) GamesInteractor {
+func NewInteractor() GamesInteractor {
 	var inter GamesInteractor
-	di.Graph.Invoke(func(sc StoreConstructor, cp channels.ChannelProvider) {
+	di.Graph.Invoke(func(gs GameStore, cp channels.ChannelProvider) {
 		inter = GamesInteractor{
-			sc(ctx),
+			gs,
 			cp,
 		}
 	})
@@ -66,7 +66,7 @@ func NewInteractor(ctx context.Context) GamesInteractor {
 	return inter
 }
 
-func (inter GamesInteractor) CreateInstance(gameName, userId string) (instanceResponse, error) {
+func (inter GamesInteractor) CreateInstance(ctx context.Context, gameName, userId string) (instanceResponse, error) {
 	g, err := Registry.GetGameLatestVersion(gameName)
 
 	if err != nil {
@@ -75,7 +75,8 @@ func (inter GamesInteractor) CreateInstance(gameName, userId string) (instanceRe
 
 	inst := NewInstance(g, userId)
 	inst.AddPlayer(userId)
-	err = inter.store.SaveInstance(inst)
+
+	err = inter.store.SaveInstance(ctx, inst)
 	if err != nil {
 		return instanceResponse{}, err
 	}
@@ -83,38 +84,38 @@ func (inter GamesInteractor) CreateInstance(gameName, userId string) (instanceRe
 	return instanceToResponse(inst, userId, inter.cp), nil
 }
 
-func (inter GamesInteractor) JoinGame(instanceId, userId string) error {
-	inst, err := inter.store.GetInstanceById(instanceId)
+func (inter GamesInteractor) JoinGame(ctx context.Context, instanceId, userId string) error {
+	inst, err := inter.store.GetInstanceById(ctx, instanceId)
 	if err != nil {
 		return err
 	}
 
-	return inter.joinInstance(inst, userId)
+	return inter.joinInstance(ctx, inst, userId)
 }
 
-func (inter GamesInteractor) joinInstance(inst *GameInstance, userId string) error {
+func (inter GamesInteractor) joinInstance(ctx context.Context, inst *GameInstance, userId string) error {
 	if inst.HasPlayer(userId) {
 		return fmt.Errorf("%v is already in the game.", userId)
 	}
 
 	inst.AddPlayer(userId)
 
-	return inter.store.SaveInstance(inst)
+	return inter.store.SaveInstance(ctx, inst)
 }
 
-func (inter GamesInteractor) LeaveGame(instanceId, userId string) error {
-	inst, err := inter.store.GetInstanceById(instanceId)
+func (inter GamesInteractor) LeaveGame(ctx context.Context, instanceId, userId string) error {
+	inst, err := inter.store.GetInstanceById(ctx, instanceId)
 	if err != nil {
 		return err
 	}
 
 	inst.RemovePlayer(userId)
 
-	return inter.store.SaveInstance(inst)
+	return inter.store.SaveInstance(ctx, inst)
 }
 
-func (inter GamesInteractor) StartGame(instanceId, userId string) error {
-	inst, err := inter.store.GetInstanceById(instanceId)
+func (inter GamesInteractor) StartGame(ctx context.Context, instanceId, userId string) error {
+	inst, err := inter.store.GetInstanceById(ctx, instanceId)
 	if err != nil {
 		return err
 	}
@@ -127,11 +128,11 @@ func (inter GamesInteractor) StartGame(instanceId, userId string) error {
 	inst.MetaState = InProgress
 	inst.Game().InitializeState(&inst.State)
 
-	return inter.store.SaveInstance(inst)
+	return inter.store.SaveInstance(ctx, inst)
 }
 
-func (inter GamesInteractor) GetInstance(instanceId string, userId ...string) (instanceResponse, error) {
-	inst, err := inter.store.GetInstanceById(instanceId)
+func (inter GamesInteractor) GetInstance(ctx context.Context, instanceId string, userId ...string) (instanceResponse, error) {
+	inst, err := inter.store.GetInstanceById(ctx, instanceId)
 	if err != nil {
 		return instanceResponse{}, err
 	}
@@ -144,8 +145,8 @@ func (inter GamesInteractor) GetInstance(instanceId string, userId ...string) (i
 	return instanceToResponse(inst, uid, inter.cp), err
 }
 
-func (inter GamesInteractor) MakeMove(instanceId, userId string, moveData interface{}) (instanceResponse, error) {
-	inst, err := inter.store.GetInstanceById(instanceId)
+func (inter GamesInteractor) MakeMove(ctx context.Context, instanceId, userId string, moveData interface{}) (instanceResponse, error) {
+	inst, err := inter.store.GetInstanceById(ctx, instanceId)
 	if err != nil {
 		return instanceResponse{}, err
 	}
@@ -178,7 +179,7 @@ func (inter GamesInteractor) MakeMove(instanceId, userId string, moveData interf
 		inst.MetaState = GameOver
 	}
 
-	err = inter.store.SaveInstance(inst)
+	err = inter.store.SaveInstance(ctx, inst)
 	if err != nil {
 		return instanceToResponse(inst, userId, inter.cp), err
 	}
@@ -186,8 +187,8 @@ func (inter GamesInteractor) MakeMove(instanceId, userId string, moveData interf
 	return instanceToResponse(inst, userId, inter.cp), nil
 }
 
-func (inter GamesInteractor) ListInstances(gname string, state ...MetaState) (*[]instanceResponse, error) {
-	insts, err := inter.store.GetInstancesByGame(gname, state...)
+func (inter GamesInteractor) ListInstances(ctx context.Context, gname string, state ...MetaState) (*[]instanceResponse, error) {
+	insts, err := inter.store.GetInstancesByGame(ctx, gname, state...)
 	if err != nil {
 		return nil, err
 	}

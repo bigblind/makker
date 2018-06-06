@@ -82,14 +82,13 @@ func (ent *gameInstanceEntity) toInstance(key *datastore.Key) *games.GameInstanc
 }
 
 type appEngineGameStore struct {
-	ctx context.Context
 }
 
-func NewGameStore(ctx context.Context) games.GameStore {
-	return appEngineGameStore{ctx}
+func NewGameStore() games.GameStore {
+	return appEngineGameStore{}
 }
 
-func (gs appEngineGameStore) SaveInstance(instance *games.GameInstance) error {
+func (gs appEngineGameStore) SaveInstance(ctx context.Context, instance *games.GameInstance) error {
 	ent := entityFromInstance(instance)
 
 	var key *datastore.Key
@@ -100,10 +99,10 @@ func (gs appEngineGameStore) SaveInstance(instance *games.GameInstance) error {
 			return err
 		}
 	} else {
-		key = datastore.NewIncompleteKey(gs.ctx, gameInstanceKind, nil)
+		key = datastore.NewIncompleteKey(ctx, gameInstanceKind, nil)
 	}
 
-	key, err = datastore.Put(gs.ctx, key, ent)
+	key, err = datastore.Put(ctx, key, ent)
 	if err != nil {
 		return err
 	}
@@ -112,14 +111,14 @@ func (gs appEngineGameStore) SaveInstance(instance *games.GameInstance) error {
 	return nil
 }
 
-func (gs appEngineGameStore) GetInstanceById(id string) (*games.GameInstance, error) {
+func (gs appEngineGameStore) GetInstanceById(ctx context.Context, id string) (*games.GameInstance, error) {
 	key, err := datastore.DecodeKey(id)
 	if err != nil {
 		return nil, err
 	}
 
 	var ent gameInstanceEntity
-	err = datastore.Get(gs.ctx, key, &ent)
+	err = datastore.Get(ctx, key, &ent)
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +126,7 @@ func (gs appEngineGameStore) GetInstanceById(id string) (*games.GameInstance, er
 	return ent.toInstance(key), nil
 }
 
-func (gs appEngineGameStore) GetInstancesByGame(gameName string, state ...games.MetaState) (*[]games.GameInstance, error) {
+func (gs appEngineGameStore) GetInstancesByGame(ctx context.Context, gameName string, state ...games.MetaState) (*[]games.GameInstance, error) {
 	q := datastore.NewQuery(gameInstanceKind)
 	q = q.Filter("GameName =", gameName)
 	if len(state) != 0 {
@@ -135,7 +134,7 @@ func (gs appEngineGameStore) GetInstancesByGame(gameName string, state ...games.
 	}
 
 	var res []gameInstanceEntity
-	keys, err := q.GetAll(gs.ctx, &res)
+	keys, err := q.GetAll(ctx, &res)
 	if err != nil {
 		return nil, err
 	}
@@ -148,7 +147,7 @@ func (gs appEngineGameStore) GetInstancesByGame(gameName string, state ...games.
 	return &insts, nil
 }
 
-func (gs appEngineGameStore) GetInstancesByGameVersion(game games.Game, state ...games.MetaState) (*[]games.GameInstance, error) {
+func (gs appEngineGameStore) GetInstancesByGameVersion(ctx context.Context, game games.Game, state ...games.MetaState) (*[]games.GameInstance, error) {
 	q := datastore.NewQuery(gameInstanceKind)
 	inf := game.Info()
 	q = q.Filter("GameName =", inf.Name)
@@ -158,7 +157,7 @@ func (gs appEngineGameStore) GetInstancesByGameVersion(game games.Game, state ..
 	}
 
 	var res []gameInstanceEntity
-	keys, err := q.GetAll(gs.ctx, &res)
+	keys, err := q.GetAll(ctx, &res)
 	if err != nil {
 		return nil, err
 	}
@@ -171,13 +170,13 @@ func (gs appEngineGameStore) GetInstancesByGameVersion(game games.Game, state ..
 	return &insts, nil
 }
 
-func (gs appEngineGameStore) DeleteGameInstance(instance *games.GameInstance) error {
+func (gs appEngineGameStore) DeleteGameInstance(ctx context.Context, instance *games.GameInstance) error {
 	key, err := datastore.DecodeKey(instance.Id)
 	if err != nil {
 		return err
 	}
 
-	return datastore.Delete(gs.ctx, key)
+	return datastore.Delete(ctx, key)
 }
 
 func gobEncode(v interface{}) []byte {

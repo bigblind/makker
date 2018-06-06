@@ -10,11 +10,11 @@ import (
 )
 
 func ListInstancesByGame(w http.ResponseWriter, r *http.Request) {
-	inter := NewInteractor(r.Context())
+	inter := NewInteractor()
 
 	vars := mux.Vars(r)
 
-	insts, err := inter.ListInstances(vars["game"])
+	insts, err := inter.ListInstances(r.Context(), vars["game"])
 	if err != nil {
 		handler_helpers.RespondWithJSONError(w, http.StatusInternalServerError, err)
 		return
@@ -24,12 +24,12 @@ func ListInstancesByGame(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateInstace(w http.ResponseWriter, r *http.Request) {
-	inter := NewInteractor(r.Context())
+	inter := NewInteractor()
 
 	uid := users.GetUserId(r)
 
 	vars := mux.Vars(r)
-	inst, err := inter.CreateInstance(vars["game"], uid)
+	inst, err := inter.CreateInstance(r.Context(), vars["game"], uid)
 	if err != nil {
 		handler_helpers.RespondWithJSONError(w, 400, err)
 	} else {
@@ -38,10 +38,10 @@ func CreateInstace(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetInstance(w http.ResponseWriter, r *http.Request) {
-	inter := NewInteractor(r.Context())
+	inter := NewInteractor()
 
 	vars := mux.Vars(r)
-	inst, err := inter.GetInstance(vars["instanceId"])
+	inst, err := inter.GetInstance(r.Context(), vars["instanceId"])
 	if err != nil {
 		handler_helpers.RespondWithJSONError(w, 400, err)
 	} else {
@@ -50,11 +50,11 @@ func GetInstance(w http.ResponseWriter, r *http.Request) {
 }
 
 func StartGame(w http.ResponseWriter, r *http.Request) {
-	inter := NewInteractor(r.Context())
+	inter := NewInteractor()
 
 	uid := users.GetUserId(r)
 	vars := mux.Vars(r)
-	err := inter.StartGame(vars["instanceId"], uid)
+	err := inter.StartGame(r.Context(), vars["instanceId"], uid)
 	if err != nil {
 		handler_helpers.RespondWithJSONError(w, 400, err)
 	} else {
@@ -70,7 +70,7 @@ type MoveRequest struct {
 }
 
 func MakeMove(w http.ResponseWriter, r *http.Request) {
-	inter := NewInteractor(r.Context())
+	inter := NewInteractor()
 
 	uid := users.GetUserId(r)
 
@@ -87,7 +87,7 @@ func MakeMove(w http.ResponseWriter, r *http.Request) {
 	}
 
 	vars := mux.Vars(r)
-	inst, err := inter.MakeMove(vars["instanceId"], uid, mr.Move)
+	inst, err := inter.MakeMove(r.Context(), vars["instanceId"], uid, mr.Move)
 	if err != nil {
 		handler_helpers.RespondWithJSONError(w, 400, err)
 	} else {

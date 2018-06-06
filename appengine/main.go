@@ -7,7 +7,6 @@ import (
 	"github.com/bigblind/makker"
 	_ "github.com/bigblind/makker/channels/pusher" // so Pusher gets injected
 	"github.com/bigblind/makker/di"
-	"github.com/bigblind/makker/games"
 )
 
 func init() {
@@ -22,7 +21,5 @@ func init() {
 }
 
 func initDeps() {
-	di.Graph.Provide(func() games.StoreConstructor {
-		return NewGameStore
-	})
+	di.Graph.Provide(NewGameStore)
 }

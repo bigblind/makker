@@ -155,13 +155,11 @@ func (i *GameInstance) Channels(userId string) InstanceChannels {
 }
 
 type GameStore interface {
-	SaveInstance(instance *GameInstance) error
-	GetInstanceById(id string) (*GameInstance, error)
+	SaveInstance(ctx context.Context, instance *GameInstance) error
+	GetInstanceById(ctx context.Context, id string) (*GameInstance, error)
 
-	GetInstancesByGame(gameName string, state ...MetaState) (*[]GameInstance, error)
-	GetInstancesByGameVersion(game Game, state ...MetaState) (*[]GameInstance, error)
+	GetInstancesByGame(ctx context.Context, gameName string, state ...MetaState) (*[]GameInstance, error)
+	GetInstancesByGameVersion(ctx context.Context, game Game, state ...MetaState) (*[]GameInstance, error)
 
-	DeleteGameInstance(instance *GameInstance) error
+	DeleteGameInstance(ctx context.Context, instance *GameInstance) error
 }
-
-type StoreConstructor func(ctx context.Context) GameStore
