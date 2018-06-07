@@ -1,1 +1,3 @@
-export users from "./users"
+import UsersAPI from "./users"
+
+export const users = new UsersAPI();

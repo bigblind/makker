@@ -9,17 +9,17 @@ export default class UsersAPI extends APIBase {
 
     on(event, handler) {
         this.listeners.has(event) || this.listeners.set(event, [])
-        this.listeners.get(label).push(listener());
+        this.listeners.get(event).push(handler);
     }
 
-    of(event, handler){
+    off(event, handler){
         let listeners = this.listeners.get(event);
 
         if (listeners && listeners.length) {
             for (let i=0; i<listeners.length; i++) {
-                if (listeners[i] == handler) {
+                if (listeners[i] === handler) {
                     listeners.splice(i, 1);
-                    this.listeners.set(label, listeners);
+                    this.listeners.set(event, listeners);
                     return true
                 }
             }
@@ -32,6 +32,7 @@ export default class UsersAPI extends APIBase {
         let listeners = this.listeners.get(event)
         if (listeners) {
             listeners.forEach((l) => {
+                console.log(l)
                 l(...args);
             })
         }

@@ -11,9 +11,9 @@ export default class ApiBase {
 
         return fetch("/api" + path, options).then((resp) => {
             if(resp.status === 200) {
-                return r.json();
+                return resp.json();
             } else {
-                return r.json().then(function ({error}) {
+                return resp.json().then(function ({error}) {
                     console.error(`${method} /api${path} returned an error: ${error}`);
                     throw error;
                 });
