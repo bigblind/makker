@@ -5,12 +5,14 @@ handlers:
 - url: /api/.*
   script: _go_app
 
-- url: /
+- url: /(.*\.(html|gif|png|jpg|css|xml|svg|js|ico|eot|woff|ttf|woff2|map|json))$
+  static_files: ../frontend/build/\1
+  upload: ../frontend/build/.*\.(html|gif|png|jpg|css|xml|svg|js|ico|eot|woff|ttf|woff2|map|json)$
+
+
+- url: .*
   static_files: ../frontend/build/index.html
   upload: ../frontend/build/index.html
-
-- url: /
-  static_dir: ../frontend/build
 
 
 skip_files:
