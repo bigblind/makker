@@ -26,4 +26,4 @@ class GamesList {
     }
 }
 
-export default new GamesList()
+export default new GamesList();

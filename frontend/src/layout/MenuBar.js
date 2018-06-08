@@ -1,7 +1,7 @@
 import React from "react";
 import {users} from "../api"
 
-import {Navbar, NavbarBrand, Nav, NavLink, NavItem} from "reactstrap";
+import {Container, Navbar, NavbarBrand, Nav, NavLink, NavItem} from "reactstrap";
 
 export default class MenuBar extends React.Component {
     constructor(props) {
@@ -33,12 +33,12 @@ export default class MenuBar extends React.Component {
             </Nav>
         }
 
-        let resp = (<Navbar color="dark" dark>
-            <NavbarBrand href="/">MAKKER</NavbarBrand>
-            {userMenu}
+        return (<Navbar color="dark" dark className="mb-1">
+            <Container>
+                <NavbarBrand href="/">MAKKER</NavbarBrand>
+                {userMenu}
+            </Container>
         </Navbar>);
-
-        return resp
     }
 }
 
