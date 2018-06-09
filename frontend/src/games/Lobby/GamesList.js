@@ -1,37 +1,38 @@
 import React from "react"
-import {Card, CardDeck, CardTitle, CardText, CardBody} from "reactstrap";
+import {ListGroup, ListGroupItem, ListGroupItemHeading, ListGroupItemText} from "reactstrap";
 
 import GamesList from "../index"
 
 export default class GamesListView extends React.Component {
     constructor(props) {
         super(props)
-
+        let games = GamesList.listGames();
         this.state = {
-            games: GamesList.listGames(),
-            selected: null
+            selected: games[0]
+        };
+
+        this.selectItem = (item, dontSetState) => {
+            !dontSetState && this.setState({selected: item});
+
+            if(this.props.onSelected){
+                this.props.onSelected(item)
+            }
         }
+
+        this.selectItem(games[0], true)
     }
 
     render() {
-        return <CardDeck>
+        return <ListGroup>
             {this.state.games.map((g) => {
-                let props = {}
-                if(this.state.selected === g) {
-                    props = {outline: true, color: "primary"}
-                }
-                return <Card {...props} onClick={() => alert(g)} key={g}>
-                    <CardBody>
-                        <CardTitle>{g}</CardTitle>
-                    </CardBody>
-                </Card>
+                return <ListGroupItem active={this.state.selected === g} onClick={() => this.selectItem(g)} key={g}>
+                    <ListGroupItemHeading>{g}</ListGroupItemHeading>
+                </ListGroupItem>
             })}
-            <Card>
-                <CardBody>
-                    <CardTitle>More Games Coming Soon!</CardTitle>
-                    <CardText>They're in the making :)</CardText>
-                </CardBody>
-            </Card>
-        </CardDeck>
+            <ListGroupItem disabled>
+                <ListGroupItemHeading>More Games Coming Soon!</ListGroupItemHeading>
+                <ListGroupItemText>They're in the making :)</ListGroupItemText>
+            </ListGroupItem>
+        </ListGroup>
     }
 }
