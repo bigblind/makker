@@ -71,6 +71,8 @@ type GameInstance struct {
 	Moves       []Move
 	MetaState   MetaState
 	AdminUserId string
+
+	CreatedAt	time.Time
 }
 
 func NewInstance(g Game, adminUserId string) *GameInstance {
@@ -85,6 +87,8 @@ func NewInstance(g Game, adminUserId string) *GameInstance {
 		State: GameState{
 			Players: make([]PlayerState, 0, info.MaxPlayers),
 		},
+
+		CreatedAt: time.Now(),
 	}
 
 	return &instance

@@ -7,6 +7,7 @@ import (
 	"github.com/bigblind/makker/di"
 	"github.com/bigblind/makker/games"
 	"google.golang.org/appengine/datastore"
+	"time"
 )
 
 func init() {
@@ -28,6 +29,7 @@ type GameStateEntity struct {
 }
 
 type gameInstanceEntity struct {
+	CreatedAt	time.Time
 	MetaState   int8
 	GameName    string
 	GameVersion int
@@ -47,6 +49,7 @@ func entityFromInstance(i *games.GameInstance) *gameInstanceEntity {
 		}
 	}
 	ent := gameInstanceEntity{
+		CreatedAt:	 i.CreatedAt,
 		MetaState:   int8(i.MetaState),
 		GameName:    i.GameName,
 		GameVersion: i.GameVersion,
@@ -73,6 +76,7 @@ func (ent *gameInstanceEntity) toInstance(key *datastore.Key) *games.GameInstanc
 	}
 	i := games.GameInstance{
 		Id:          key.Encode(),
+		CreatedAt:	 ent.CreatedAt,
 		GameName:    ent.GameName,
 		GameVersion: ent.GameVersion,
 		State: games.GameState{
