@@ -282,6 +282,7 @@ func (inter GamesInteractor) EmitPrivate(ctx context.Context, inst *games.GameIn
 
 type instanceResponsePlayer struct {
 	UserId string `json:"user_id"`
+	Name   string `json:"name"`
 	Score  int32  `json:"score"`
 }
 
@@ -301,6 +302,7 @@ func instanceToResponse(i *games.GameInstance, uid string, cp channels.ChannelPr
 	for j, p := range i.State.Players {
 		ps[j] = instanceResponsePlayer{
 			UserId: p.UserId,
+			Name:   p.UserId,
 			Score:  p.Score,
 		}
 	}
