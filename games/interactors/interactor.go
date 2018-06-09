@@ -288,6 +288,7 @@ type instanceResponsePlayer struct {
 
 type instanceResponse struct {
 	Id       string                   `json:"id"`
+	CreatedAt time.Time				  `json:"created_at"`
 	GameInfo games.GameInfo           `json:"game_info"`
 	State    games.MetaState          `json:"state"`
 	Players  []instanceResponsePlayer `json:"players"`
@@ -309,6 +310,7 @@ func instanceToResponse(i *games.GameInstance, uid string, cp channels.ChannelPr
 
 	return instanceResponse{
 		Id:       i.Id,
+		CreatedAt:i.CreatedAt,
 		GameInfo: i.Game().Info(),
 		State:    i.MetaState,
 		Players:  ps,
