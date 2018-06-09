@@ -1,4 +1,6 @@
-export default class ApiBase {
+import EventEmitter from "./EventEmitter"
+
+export default class ApiBase extends EventEmitter {
     static makeRequest(method, path, body) {
         let options = {
             method: method,
