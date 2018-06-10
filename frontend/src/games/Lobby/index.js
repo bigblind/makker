@@ -1,7 +1,8 @@
 import React from "react"
-import {Row} from "reactstrap"
+import {Row, Col} from "reactstrap"
 
 import GamesList from "./GamesList"
+import InstancesList from "./InstancesList"
 
 export default class Lobby extends React.Component {
     constructor(props) {
@@ -18,7 +19,8 @@ export default class Lobby extends React.Component {
                 <h1>Select a Game</h1>
             </Row>,
             <Row>
-                <GamesList/>
+                <Col><GamesList onSelected={(g) => this.setState({selectedGame: g})}/></Col>
+                <Col><InstancesList game={this.state.selectedGame}/></Col>
             </Row>
         ]
     }
