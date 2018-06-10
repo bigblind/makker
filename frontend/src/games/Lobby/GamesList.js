@@ -8,7 +8,8 @@ export default class GamesListView extends React.Component {
         super(props)
         let games = GamesList.listGames();
         this.state = {
-            selected: games[0]
+            selected: games[0],
+            games
         };
 
         this.selectItem = (item, dontSetState) => {
