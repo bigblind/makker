@@ -6,10 +6,13 @@ import (
 	games "github.com/bigblind/makker/games/handlers"
 	"github.com/bigblind/makker/users"
 	"github.com/gorilla/mux"
+	"github.com/bigblind/makker/config"
 )
 
 func GetRouter() *mux.Router {
 	r := mux.NewRouter().PathPrefix("/api").Subrouter()
+
+	r.HandleFunc("/config", config.GetConfig).Methods("GET")
 
 	r.HandleFunc("/users/me", users.MeHandler)
 
