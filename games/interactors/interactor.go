@@ -248,7 +248,7 @@ func (inter GamesInteractor) MakeMove(ctx context.Context, instanceId, userId st
 	return instanceToResponse(inst, userId, inter.cp), nil
 }
 
-func (inter GamesInteractor) ListInstances(ctx context.Context, gname string, state ...games.MetaState) (*[]instanceResponse, error) {
+func (inter GamesInteractor) ListInstances(ctx context.Context, gname, userId string, state ...games.MetaState) (*[]instanceResponse, error) {
 	insts, err := inter.store.GetInstancesByGame(ctx, gname, state...)
 	if err != nil {
 		return nil, err
@@ -256,7 +256,7 @@ func (inter GamesInteractor) ListInstances(ctx context.Context, gname string, st
 
 	ris := make([]instanceResponse, len(*insts))
 	for i, inst := range *insts {
-		ris[i] = instanceToResponse(&inst, "", inter.cp)
+		ris[i] = instanceToResponse(&inst, userId, inter.cp)
 	}
 
 	return &ris, nil

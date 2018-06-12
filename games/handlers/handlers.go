@@ -14,8 +14,9 @@ var interactor = interactors.Interactor
 
 func ListInstancesByGame(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
+	uid := users.GetUserId(r)
 
-	insts, err := interactor.ListInstances(r.Context(), vars["game"])
+	insts, err := interactor.ListInstances(r.Context(), vars["game"], uid)
 	if err != nil {
 		handler_helpers.RespondWithJSONError(w, http.StatusInternalServerError, err)
 		return
@@ -37,8 +38,10 @@ func CreateInstace(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetInstance(w http.ResponseWriter, r *http.Request) {
+	uid := users.GetUserId(r)
+
 	vars := mux.Vars(r)
-	inst, err := interactor.GetInstance(r.Context(), vars["instanceId"])
+	inst, err := interactor.GetInstance(r.Context(), vars["instanceId"], uid)
 	if err != nil {
 		handler_helpers.RespondWithJSONError(w, 400, err)
 	} else {
