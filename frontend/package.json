@@ -5,6 +5,7 @@
   "proxy": "http://localhost:9000",
   "dependencies": {
     "bootstrap": "^4.1.1",
+    "pusher-js": "^4.2.2",
     "react": "^16.4.0",
     "react-dom": "^16.4.0",
     "react-router-dom": "^4.2.2",
