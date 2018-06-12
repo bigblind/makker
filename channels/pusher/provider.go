@@ -162,6 +162,7 @@ func (pp PusherProvider) HandleChannelAuth(w http.ResponseWriter, r *http.Reques
 		err = checker(r.Context(), ch, uid)
 		if err != nil {
 			handler_helpers.RespondWithJSONError(w, http.StatusForbidden, err)
+			return
 		}
 	}
 
