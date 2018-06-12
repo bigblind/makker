@@ -30,7 +30,7 @@ export default class GamesAPI extends APIBase {
     }
 
     getInstances(game){
-        let ids = this.instances[game] || [];
+        let ids = this.instancesByGame[game] || [];
         return ids.map((id) => {
             return this.instances[id];
         })
