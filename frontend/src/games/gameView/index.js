@@ -1,10 +1,11 @@
 import React from "react";
 
-import {games, users} from "../../api/index";
+import {games} from "../../api/index";
 import channels from "../../channels";
 import WaitingArea from "./WaitingArea"
+import withUserData from "../../users/withUserData";
 
-export default class GameView extends React.Component {
+export default withUserData(class GameView extends React.Component {
     constructor(props){
         super(props);
 
@@ -25,8 +26,7 @@ export default class GameView extends React.Component {
     componentDidUpdate(prevProps, prevState) {
         if(this.state.instance && (!prevState.instance || prevState.instance.id !== this.state.instance.id)){
             this.connectPublicChannel();
-            let userInGame = this.state.instance.players.filter((p) => p.user_id === users.getUserData().id).length > 0;
-            console.log("userInGame", userInGame, "userData", users.getUserData());
+            let userInGame = this.state.instance.players.filter((p) => p.user_id === this.props.user.id).length > 0;
             if(userInGame){
                 this.ensurePrivateConnection();
             }
@@ -67,4 +67,4 @@ export default class GameView extends React.Component {
             return <WaitingArea instance={this.state.instance} />
         }
     }
-}
+})
