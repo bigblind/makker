@@ -2,8 +2,12 @@ import APIBase from "./base"
 
 export default class UsersAPI extends APIBase {
     constructor() {
-        super()
+        super();
         this.userData = null;
+        let serialized = localStorage.userData;
+        if(serialized){
+            this.userData = JSON.parse(serialized);
+        }
     }
 
     getUserData(retried) {
@@ -13,6 +17,7 @@ export default class UsersAPI extends APIBase {
                     this.getUserData(true) // retry once
                 }
                 this.userData = userData;
+                localStorage.setItem("userData", JSON.stringify(userData));
                 this.emit("userData", userData);
             })
         }
