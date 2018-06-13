@@ -28,7 +28,7 @@ export default withUserData(class GameView extends React.Component {
             this.connectPublicChannel();
             let userInGame = this.state.instance.players.filter((p) => p.user_id === this.props.user.id).length > 0;
             if(userInGame){
-                this.ensurePrivateConnection();
+                this.joinGame();
             }
             this.setState({userInGame});
         }
@@ -45,7 +45,7 @@ export default withUserData(class GameView extends React.Component {
         });
     }
 
-    ensurePrivateConnection(){
+    joinGame(){
         channels.then((c) => {
             if(this.privateChannelConnection !== this.state.instance.private_channel) {
                 if(this.privateChannelConnection){
@@ -58,13 +58,20 @@ export default withUserData(class GameView extends React.Component {
         });
     }
 
+    leaveGame(){
+        channels.then((c) => {
+            c.unsubscribe(this.privateChannelConnection)
+            this.privateChannelConnection = null;
+        });
+    }
+
     render(){
         if(!this.state.instance){
             return "..."
         }
 
         if(this.state.instance.state === 0) {
-            return <WaitingArea instance={this.state.instance} />
+            return <WaitingArea instance={this.state.instance} playerInGame={} onJoin={this.joinGame.bind(this)} onLeave={this.leaveGame.bind(this)} />
         }
     }
 })
