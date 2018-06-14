@@ -97,7 +97,10 @@ func (inter GamesInteractor) CreateInstance(ctx context.Context, gameName, userI
 		return instanceResponse{}, err
 	}
 
-	return instanceToResponse(inst, userId, inter.cp), nil
+	resp := instanceToResponse(inst, userId, inter.cp)
+
+	inter.EmitLobby(ctx, "created", resp)
+	return resp, nil
 }
 
 func (inter GamesInteractor) JoinGame(ctx context.Context, instanceId, userId string) error {
@@ -117,6 +120,7 @@ func (inter GamesInteractor) joinInstance(ctx context.Context, inst *games.GameI
 	inst.AddPlayer(userId)
 
 	inter.EmitPublic(ctx, inst, "player_join", map[string]string{"user_id": userId})
+	inter.EmitLobby(ctx, "update", inst.Id)
 
 	return inter.store.SaveInstance(ctx, inst)
 }
@@ -130,6 +134,7 @@ func (inter GamesInteractor) LeaveGame(ctx context.Context, instanceId, userId s
 	inst.RemovePlayer(userId)
 
 	inter.EmitPublic(ctx, inst, "player_leave", map[string]string{"user_id": userId})
+	inter.EmitLobby(ctx, "update", inst.Id)
 
 	return inter.store.SaveInstance(ctx, inst)
 }
@@ -154,6 +159,7 @@ func (inter GamesInteractor) StartGame(ctx context.Context, instanceId, userId s
 	}
 
 	inter.EmitMetaState(ctx, inst)
+	inter.EmitLobby(ctx, "update", inst.Id)
 
 	return nil
 }
@@ -278,6 +284,14 @@ func (inter GamesInteractor) EmitPrivate(ctx context.Context, inst *games.GameIn
 
 	c := inter.cp.NewChannel(ctx, "games", cs.Private, true)
 	c.Emit(event, data)
+}
+
+func (inter GamesInteractor) EmitLobby(ctx context.Context, event string, data interface{}){
+	inter.LobbyChannel(ctx).Emit(event, data)
+}
+
+func (inter GamesInteractor) LobbyChannel(ctx context.Context) channels.Channel {
+	return inter.cp.NewChannel(ctx, "games", "lobby", true)
 }
 
 type instanceResponsePlayer struct {
