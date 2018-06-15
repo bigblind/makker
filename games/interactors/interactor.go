@@ -8,6 +8,7 @@ import (
 	"github.com/bigblind/makker/games"
 	"strings"
 	"time"
+	"github.com/bigblind/makker/config"
 )
 
 var Interactor GamesInteractor
@@ -16,6 +17,7 @@ func init() {
 	Interactor = NewInteractor()
 
 	initChannels()
+	config.FrontendConfig["lobby_channel"] = Interactor.LobbyChannel(nil).ClientId()
 }
 
 func initChannels() {
