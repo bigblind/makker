@@ -99,10 +99,8 @@ func (inter GamesInteractor) CreateInstance(ctx context.Context, gameName, userI
 		return instanceResponse{}, err
 	}
 
-	resp := instanceToResponse(inst, userId, inter.cp)
-
-	inter.EmitLobby(ctx, "created", resp)
-	return resp, nil
+	inter.EmitLobby(ctx, "created", inst.Id)
+	return instanceToResponse(inst, userId, inter.cp), nil
 }
 
 func (inter GamesInteractor) JoinGame(ctx context.Context, instanceId, userId string) error {
