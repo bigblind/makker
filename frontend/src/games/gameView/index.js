@@ -24,6 +24,7 @@ export default withUserData(class GameView extends React.Component {
     }
 
     componentDidUpdate(prevProps, prevState) {
+        console.log("didUpdate");
         if(this.state.instance && (!prevState.instance || prevState.instance.id !== this.state.instance.id)){
             this.connectPublicChannel();
             let userInGame = this.state.instance.players.filter((p) => p.user_id === this.props.user.id).length > 0;
