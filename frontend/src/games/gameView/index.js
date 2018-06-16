@@ -71,7 +71,7 @@ export default withUserData(class GameView extends React.Component {
         }
 
         if(this.state.instance.state === 0) {
-            return <WaitingArea instance={this.state.instance} playerInGame={} onJoin={this.joinGame.bind(this)} onLeave={this.leaveGame.bind(this)} />
+            return <WaitingArea instance={this.state.instance} userInGame={this.state.userInGame} onJoin={this.joinGame.bind(this)} onLeave={this.leaveGame.bind(this)} />
         }
     }
 })
