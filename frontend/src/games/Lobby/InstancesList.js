@@ -1,7 +1,7 @@
 import React from "react"
 import {Table, Badge} from "reactstrap";
 
-import {games} from "../../api";
+import games from "../../api/games";
 
 export default class InstancesList extends React.Component {
     constructor(props){

@@ -1,5 +1,5 @@
 import React from "react";
-import {users} from "../api"
+import users from "../api/users"
 
 import {Container, Navbar, NavbarBrand, Nav, NavLink, NavItem} from "reactstrap";
 

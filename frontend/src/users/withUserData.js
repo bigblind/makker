@@ -1,6 +1,6 @@
 import React from "react";
 
-import {users} from "../api";
+import users from "../api/users";
 
 // Higer Order Component (HOC) that passes user data to its wrapped component. It ensures its wrapped component is only rendered after user data hsb been loaded.
 export default function withUserData(Component) {

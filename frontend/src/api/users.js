@@ -1,6 +1,6 @@
 import APIBase from "./base"
 
-export default class UsersAPI extends APIBase {
+class UsersAPI extends APIBase {
     constructor() {
         super();
         this.userData = null;
@@ -25,3 +25,5 @@ export default class UsersAPI extends APIBase {
         return this.userData
     }
 }
+
+export default new UsersAPI();

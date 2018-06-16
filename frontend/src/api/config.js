@@ -1,6 +1,6 @@
 import ApiBase from "./base"
 
-export default class ConfigAPI extends ApiBase {
+class ConfigAPI extends ApiBase {
     constructor() {
         super();
 
@@ -11,3 +11,5 @@ export default class ConfigAPI extends ApiBase {
         return this.config;
     }
 }
+
+export default new ConfigAPI();

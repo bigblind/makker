@@ -1,6 +1,6 @@
 import React from "react";
 
-import {games} from "../../api/index";
+import games from "../../api/games";
 import channels from "../../channels";
 import WaitingArea from "./WaitingArea"
 import withUserData from "../../users/withUserData";
