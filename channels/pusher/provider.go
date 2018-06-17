@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"github.com/bigblind/makker/logging"
 )
 
 func init() {
@@ -22,6 +23,7 @@ func init() {
 
 type PusherProvider struct {
 	HttpClientConstructor func(ctx context.Context) *http.Client
+	Logger *logging.StructuredLogger
 
 	JoinListeners  map[string][]channels.EventHandler
 	LeaveListeners map[string][]channels.EventHandler
@@ -32,12 +34,15 @@ type channelProviderParams struct {
 	dig.In
 
 	ClientConstructor func(ctx context.Context) *http.Client `optional:"true"`
+	Logger *logging.StructuredLogger
 }
 
 func newChannelProvider(params channelProviderParams) channels.ChannelProvider {
 	var pp PusherProvider
 	pp = PusherProvider{
 		HttpClientConstructor: params.ClientConstructor,
+		Logger:				   params.Logger,
+
 		JoinListeners:         make(map[string][]channels.EventHandler),
 		LeaveListeners:        make(map[string][]channels.EventHandler),
 		UserCheckers:          make(map[string]channels.ChannelAuthChecker),
@@ -111,7 +116,7 @@ func (pp PusherProvider) OnJoin(namespace string, handler channels.EventHandler)
 	var ok bool
 
 	if listeners, ok = pp.JoinListeners[namespace]; !ok {
-		listeners = make([]channels.EventHandler, 1)
+		listeners = make([]channels.EventHandler, 0)
 	}
 
 	listeners = append(listeners, handler)
@@ -123,7 +128,7 @@ func (pp PusherProvider) OnLeave(namespace string, handler channels.EventHandler
 	var ok bool
 
 	if listeners, ok = pp.LeaveListeners[namespace]; !ok {
-		listeners = make([]channels.EventHandler, 1)
+		listeners = make([]channels.EventHandler, 0)
 	}
 
 	listeners = append(listeners, handler)
@@ -135,6 +140,7 @@ func (pp PusherProvider) SetUserChecker(namespace string, checker channels.Chann
 }
 
 func (pp PusherProvider) HandleChannelAuth(w http.ResponseWriter, r *http.Request) {
+	logger := pp.Logger
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		handler_helpers.RespondWithJSONError(w, http.StatusBadRequest, err)
@@ -157,15 +163,18 @@ func (pp PusherProvider) HandleChannelAuth(w http.ResponseWriter, r *http.Reques
 	// We can safely ignore the error here, because AuthenticatePresenceChannel does the same check.
 	params, _ := url.ParseQuery(string(body))
 	ch := pp.ChannelFromClientId(r.Context(), params["channel_name"][0])
+	logger = logger.WithField("channel", ch)
 
 	if checker, ok := pp.UserCheckers[ch.Namespace()]; ok {
 		err = checker(r.Context(), ch, uid)
 		if err != nil {
 			handler_helpers.RespondWithJSONError(w, http.StatusForbidden, err)
+			logger.Infof(r.Context(), "Access to channel denied: %v", err)
 			return
 		}
 	}
 
+	logger.Infof(r.Context(), "Access to channel granted")
 	w.Write(resp)
 }
 
@@ -188,6 +197,8 @@ func (pp PusherProvider) HadleWebHook(w http.ResponseWriter, r *http.Request) {
 
 	for _, e := range wh.Events {
 		ch := pp.ChannelFromClientId(r.Context(), e.Channel)
+		logger := pp.Logger.WithField("channel", ch).WithField("event", e)
+		logger.Infof(r.Context(), "handling event")
 
 		switch e.Name {
 		case "member_added":
@@ -204,6 +215,7 @@ func (pp PusherProvider) HadleWebHook(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
+		logger.Infof(r.Context(), "Calling %v listeners", len(listeners))
 		for _, l := range listeners {
 			l(r.Context(), ch, e.UserId, e.SocketId)
 		}
