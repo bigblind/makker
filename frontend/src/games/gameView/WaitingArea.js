@@ -10,7 +10,11 @@ const WaitingArea = ({instance, userInGame, userIsAdmin, onJoin, onLeave, onStar
         <Button color="danger" onClick={onLeave}>Leave Game</Button> :
         <Button color="primary" onClick={onJoin}>Join Game</Button>;
 
-    let startBtn = userIsAdmin ? <span><Button color="success" onClick={onStart}>Start Game</Button> </span> : null;
+    let startBtn = userIsAdmin ? <span><Button color="success"
+                                               onClick={onStart}
+                                               disabled={instance.players.length < instance.game_info.min_players}>
+        Start Game
+    </Button> </span> : null;
 
     return <Row>
         <Col>
