@@ -117,7 +117,12 @@ func (gs *GameState) RemovePlayer(userId string) {
 	}
 }
 
-func (i *GameInstance) RemovePlayer(userId string) { i.State.RemovePlayer(userId) }
+func (i *GameInstance) RemovePlayer(userId string) {
+	i.State.RemovePlayer(userId)
+	if i.AdminUserId == userId {
+		i.AdminUserId = i.State.Players[0].UserId;
+	}
+}
 
 func (gs *GameState) HasPlayer(userId string) bool {
 	return gs.GetPlayerIndex(userId) >= 0
