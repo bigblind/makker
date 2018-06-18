@@ -82,6 +82,10 @@ class GamesAPI extends APIBase {
             return instance;
         })
     }
+
+    startGame(id){
+        return GamesAPI.makeRequest("POST", `/games/instances/${id}/start`);
+    }
 }
 
 export default new GamesAPI();
