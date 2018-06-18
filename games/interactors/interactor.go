@@ -282,24 +282,28 @@ func (inter GamesInteractor) emitGameState(ctx context.Context, inst *games.Game
 		Data:    inst.State.SharedState,
 	})
 
-	for _, p := range inst.State.Players {
+	publicPlayerState := make([]interface{}, len(inst.State.Players))
+	for i, p := range inst.State.Players {
 		privc := inter.cp.NewChannel(ctx, "games", inst.Channels(p.UserId).Private, false)
 
 		events = append(events, channels.Event{
 			Channel: privc,
 			Name:    "private_state",
 			Data:    p.PrivateState,
-		},
-			channels.Event{
-				Channel: pubc,
-				Name:    "public_state",
-				Data: map[string]interface{}{
-					"user_id": p.UserId,
-					"data":    p.PublicState,
-					"score":   p.Score,
-				},
-			})
+		})
+
+		publicPlayerState[i] = map[string]interface{}{
+			"user_id": p.UserId,
+			"data":    p.PublicState,
+			"score":   p.Score,
+		}
 	}
+
+	events = append(events, channels.Event{
+		Channel: pubc,
+		Name: "public_state",
+		Data: publicPlayerState,
+	})
 
 	inter.cp.EmitBatch(ctx, events)
 
