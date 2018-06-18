@@ -306,6 +306,7 @@ type instanceResponse struct {
 	GameInfo games.GameInfo           `json:"game_info"`
 	State    games.MetaState          `json:"state"`
 	Players  []instanceResponsePlayer `json:"players"`
+	Admin	 string					  `json:"admin"`
 
 	PublicChannel  string `json:"public_channel"`
 	PrivateChannel string `json:"private_channel"`
@@ -324,6 +325,7 @@ func instanceToResponse(i *games.GameInstance, uid string, cp channels.ChannelPr
 
 	return instanceResponse{
 		Id:       i.Id,
+		Admin:	  i.AdminUserId,
 		CreatedAt:i.CreatedAt,
 		GameInfo: i.Game().Info(),
 		State:    i.MetaState,
