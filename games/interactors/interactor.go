@@ -149,6 +149,11 @@ func (inter GamesInteractor) StartGame(ctx context.Context, instanceId, userId s
 		return fmt.Errorf("you're not the admin of this game")
 	}
 
+	minPlayers := inst.Game().Info().MinPlayers
+	if len(inst.State.Players) < minPlayers {
+		return fmt.Errorf("at least %v players are needed to start the game.", minPlayers)
+	}
+
 	inst.ShufflePlayers()
 	inst.MetaState = games.InProgress
 	inst.Game().InitializeState(&inst.State)
