@@ -165,6 +165,7 @@ func (inter GamesInteractor) StartGame(ctx context.Context, instanceId, userId s
 
 	inter.EmitMetaState(ctx, inst)
 	inter.EmitLobby(ctx, "update", inst.Id)
+	inter.emitGameState(ctx, inst)
 
 	return nil
 }
@@ -222,35 +223,7 @@ func (inter GamesInteractor) MakeMove(ctx context.Context, instanceId, userId st
 		return instanceToResponse(inst, userId, inter.cp), err
 	}
 
-	events := make([]channels.Event, 0, len(inst.State.Players)*2+1)
-
-	pubc := inter.cp.NewChannel(ctx, "games", inst.Channels("").Public, true)
-	events = append(events, channels.Event{
-		Channel: pubc,
-		Name:    "state",
-		Data:    inst.State.SharedState,
-	})
-
-	for _, p := range inst.State.Players {
-		privc := inter.cp.NewChannel(ctx, "games", inst.Channels(p.UserId).Private, false)
-
-		events = append(events, channels.Event{
-			Channel: privc,
-			Name:    "private_state",
-			Data:    p.PrivateState,
-		},
-			channels.Event{
-				Channel: pubc,
-				Name:    "public_state",
-				Data: map[string]interface{}{
-					"user_id": p.UserId,
-					"data":    p.PublicState,
-					"score":   p.Score,
-				},
-			})
-	}
-
-	inter.cp.EmitBatch(ctx, events)
+	inter.emitGameState(ctx, inst)
 
 	if inst.MetaState == games.GameOver {
 		inter.EmitMetaState(ctx, inst)
@@ -297,6 +270,39 @@ func (inter GamesInteractor) EmitLobby(ctx context.Context, event string, data i
 
 func (inter GamesInteractor) LobbyChannel(ctx context.Context) channels.Channel {
 	return inter.cp.NewChannel(ctx, "games", "lobby", true)
+}
+
+func (inter GamesInteractor) emitGameState(ctx context.Context, inst *games.GameInstance) {
+	events := make([]channels.Event, 0, len(inst.State.Players)*2+1)
+
+	pubc := inter.cp.NewChannel(ctx, "games", inst.Channels("").Public, true)
+	events = append(events, channels.Event{
+		Channel: pubc,
+		Name:    "state",
+		Data:    inst.State.SharedState,
+	})
+
+	for _, p := range inst.State.Players {
+		privc := inter.cp.NewChannel(ctx, "games", inst.Channels(p.UserId).Private, false)
+
+		events = append(events, channels.Event{
+			Channel: privc,
+			Name:    "private_state",
+			Data:    p.PrivateState,
+		},
+			channels.Event{
+				Channel: pubc,
+				Name:    "public_state",
+				Data: map[string]interface{}{
+					"user_id": p.UserId,
+					"data":    p.PublicState,
+					"score":   p.Score,
+				},
+			})
+	}
+
+	inter.cp.EmitBatch(ctx, events)
+
 }
 
 type instanceResponsePlayer struct {
