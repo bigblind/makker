@@ -1,5 +1,6 @@
 import React from "react"
 import {Table, Badge} from "reactstrap";
+import {Link} from "react-router-dom";
 
 import games from "../../api/games";
 
@@ -45,6 +46,7 @@ export default class InstancesList extends React.Component {
         return <Table>
             <thead>
                 <tr>
+                    <th>View</th>
                     <th>Players</th>
                     <th>Created</th>
                 </tr>
@@ -52,6 +54,7 @@ export default class InstancesList extends React.Component {
             <tbody>
             {instances.map((i) => {
                 return <tr key={i.id}>
+                    <td><Link to={`/instances/${i.id}`}>View</Link></td>
                     <td>{i.players.map((p) => <Badge color="primary" key={p.id}>{p.name}</Badge>)}</td>
                     <td>{i.created_at}</td>
                 </tr>
