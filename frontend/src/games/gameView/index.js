@@ -21,7 +21,8 @@ export default withUserData(class StateManager extends React.Component {
             console.log("instances updated!");
             let instance = games.getInstance(this.props.match.params.instanceId);
             let userInGame = instance.players.filter((p) => p.user_id === this.props.user.id).length > 0;
-            this.setState({instance, userInGame})
+            let userIsAdmin = instance.admin === this.props.user.id;
+            this.setState({instance, userInGame, userIsAdmin});
         })
     }
 
@@ -64,13 +65,22 @@ export default withUserData(class StateManager extends React.Component {
         });
     }
 
+    startGame(){
+        games.startGame(this.state.instance.id);
+    }
+
     render(){
         if(!this.state.instance){
             return "..."
         }
 
         if(this.state.instance.state === 0) {
-            return <WaitingArea instance={this.state.instance} userInGame={this.state.userInGame} onJoin={this.joinGame.bind(this)} onLeave={this.leaveGame.bind(this)} />
+            return <WaitingArea instance={this.state.instance}
+                                userInGame={this.state.userInGame}
+                                userIsAdmin={this.state.userIsAdmin}
+                                onJoin={this.joinGame.bind(this)}
+                                onLeave={this.leaveGame.bind(this)}
+                                onStart={this.startGame.bind(this)} />
         }
     }
 })
