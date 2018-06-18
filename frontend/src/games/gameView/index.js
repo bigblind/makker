@@ -19,19 +19,17 @@ export default withUserData(class GameView extends React.Component {
     componentDidMount(){
         games.on("instances", () => {
             console.log("instances updated!");
-            this.setState({instance: games.getInstance(this.props.match.params.instanceId)})
+            let instance = games.getInstance(this.props.match.params.instanceId);
+            let userInGame = instance.players.filter((p) => p.user_id === this.props.user.id).length > 0;
+            this.setState({instance, userInGame})
         })
     }
 
     componentDidUpdate(prevProps, prevState) {
-        console.log("didUpdate");
         if(this.state.instance && (!prevState.instance || prevState.instance.id !== this.state.instance.id)){
-            this.connectPublicChannel();
-            let userInGame = this.state.instance.players.filter((p) => p.user_id === this.props.user.id).length > 0;
-            if(userInGame){
+            if(this.state.userInGame){
                 this.joinGame();
             }
-            this.setState({userInGame});
         }
     }
 
