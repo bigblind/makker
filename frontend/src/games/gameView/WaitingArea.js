@@ -1,5 +1,5 @@
 import React from "react";
-import {Row, Col, Button} from "reactstrap";
+import {Row, Col, Button, Badge} from "reactstrap";
 
 const WaitingArea = ({instance, userInGame, onJoin, onLeave}) => {
     if(!instance) {
@@ -18,7 +18,8 @@ const WaitingArea = ({instance, userInGame, onJoin, onLeave}) => {
             <p>{btn}</p>
             <ul>
                 {instance.players.map((p) => {
-                    return <li key={p.id}>{p.name}</li>
+                    let admin = instance.admin === p.user_id ? <Badge color="secondary">Game Admin</Badge> : null;
+                    return <li key={p.user_id}>{p.name} {admin}</li>
                 })}
             </ul>
         </Col>
