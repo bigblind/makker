@@ -5,7 +5,7 @@ import channels from "../../channels";
 import WaitingArea from "./WaitingArea"
 import withUserData from "../../users/withUserData";
 
-export default withUserData(class GameView extends React.Component {
+export default withUserData(class StateManager extends React.Component {
     constructor(props){
         super(props);
 
