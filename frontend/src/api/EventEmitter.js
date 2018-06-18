@@ -8,15 +8,15 @@ export default class EventEmitter {
         this.listeners.get(event).push(handler);
     }
 
-    off(event, handler){
+    off(event, handler) {
         let listeners = this.listeners.get(event);
 
         if (listeners && listeners.length) {
-            for (let i=0; i<listeners.length; i++) {
+            for (let i = 0; i < listeners.length; i++) {
                 if (listeners[i] === handler) {
                     listeners.splice(i, 1);
                     this.listeners.set(event, listeners);
-                    return true
+                    return true;
                 }
             }
         }
@@ -25,12 +25,12 @@ export default class EventEmitter {
     }
 
     emit(event, ...args) {
-        let listeners = this.listeners.get(event)
+        let listeners = this.listeners.get(event);
         if (listeners) {
-            listeners.forEach((l) => {
-                console.log(l)
+            listeners.forEach(l => {
+                console.log(l);
                 l(...args);
-            })
+            });
         }
     }
 }

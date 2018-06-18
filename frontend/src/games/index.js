@@ -1,13 +1,13 @@
 class GamesList {
     constructor() {
-        this.games = {}
+        this.games = {};
 
-        this.addGame("WordSplash", 1, "WordSplash")
+        this.addGame('WordSplash', 1, 'WordSplash');
     }
 
     addGame(name, version, runner) {
         if (!this.games[name]) {
-            this.games[name] = {}
+            this.games[name] = {};
         }
 
         this.games[name][version] = runner;
@@ -21,7 +21,7 @@ class GamesList {
         return Object.keys(this.games);
     }
 
-    loadGame(name, version){
+    loadGame(name, version) {
         return import(`./runners/${this.games[name][version]}`);
     }
 }
