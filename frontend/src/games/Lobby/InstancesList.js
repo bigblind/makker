@@ -1,13 +1,15 @@
 import React from "react"
-import {Table, Badge} from "reactstrap";
-import {Link} from "react-router-dom";
+import {Table, Badge, Button} from "reactstrap";
+import {Link, withRouter} from "react-router-dom";
 
 import games from "../../api/games";
 
-export default class InstancesList extends React.Component {
+export default withRouter(class InstancesList extends React.Component {
     constructor(props){
         super(props);
-        this.state = {};
+        this.state = {
+            starting: false
+        };
         if(props.game){
             this.state = {
                 instances: games.getInstances(props.game)
@@ -40,6 +42,16 @@ export default class InstancesList extends React.Component {
         }
     }
 
+    startGame(){
+        this.setState({starting: true});
+        games.createInstance(this.props.game).then(
+            instance => {
+                this.setState({starting: false});
+                this.props.history.push(`/instances/${instance.id}`)
+            }
+        )
+    }
+
     render() {
         let instances = this.state.instances || [];
 
@@ -59,8 +71,13 @@ export default class InstancesList extends React.Component {
                     <td>{i.created_at}</td>
                 </tr>
             })}
+            <tr>
+                <td colSpan="2">
+                    <Button color="success" active={this.state.starting} onClick={this.startGame.bind(this)}>Start new game</Button>
+                </td>
+            </tr>
             </tbody>
         </Table>
     }
-}
+});
 

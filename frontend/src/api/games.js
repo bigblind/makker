@@ -89,6 +89,10 @@ class GamesAPI extends APIBase {
         );
     }
 
+    createInstance(game){
+        return GamesAPI.makeRequest("POST", `/games/${game}/new`);
+    }
+
     startGame(id) {
         return GamesAPI.makeRequest('POST', `/games/instances/${id}/start`);
     }
