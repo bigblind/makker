@@ -22,7 +22,7 @@ export default class InstancesList extends React.Component {
     }
 
     componentWillUnmount(){
-        games.off("instances", this.handleInstancesUpdate())
+        games.off("instances", this.handleInstancesUpdate)
     }
 
     static getDerivedStateFromProps(props, state) {
