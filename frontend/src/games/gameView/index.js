@@ -22,6 +22,9 @@ export default withUserData(class StateManager extends React.Component {
         games.on("instances", () => {
             console.log("instances updated!");
             let instance = games.getInstance(this.props.match.params.instanceId);
+            if(!instance) {
+                return;
+            }
             let userInGame = instance.players.filter((p) => p.user_id === this.props.user.id).length > 0;
             let userIsAdmin = instance.admin === this.props.user.id;
             this.setState({instance, userInGame, userIsAdmin});
