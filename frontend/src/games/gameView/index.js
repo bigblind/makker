@@ -1,8 +1,9 @@
 import React from "react";
 
 import games from "../../api/games";
+import gamesList from "../index";
 import channels from "../../channels";
-import WaitingArea from "./WaitingArea"
+import WaitingArea from "./WaitingArea";
 import withUserData from "../../users/withUserData";
 
 export default withUserData(class StateManager extends React.Component {
@@ -10,7 +11,8 @@ export default withUserData(class StateManager extends React.Component {
         super(props);
 
         this.state = {
-            instance: games.getInstance(props.match.params.instanceId)
+            instance: games.getInstance(props.match.params.instanceId),
+            runnerLoaded: false
         };
 
         games.refreshInstance(props.match.params.instanceId)
@@ -31,6 +33,13 @@ export default withUserData(class StateManager extends React.Component {
             if(this.state.userInGame){
                 this.joinGame();
             }
+
+            this.setState({runnerLoaded: false});
+            let info = this.state.instance.game_info;
+            gamesList.loadGame(info.name, info.version).then((runner) => {
+                this.runner = runner;
+                this.setState({runnerLoaded: true});
+            });
         }
     }
 
@@ -81,6 +90,14 @@ export default withUserData(class StateManager extends React.Component {
                                 onJoin={this.joinGame.bind(this)}
                                 onLeave={this.leaveGame.bind(this)}
                                 onStart={this.startGame.bind(this)} />
+        }
+
+        if(this.state.instance.state === 1){
+            if(!this.state.runnerLoaded){
+                return "Loading..."
+            }
+
+            return <this.runner.RunnerView instance={this.state.instance} />;
         }
     }
 })
