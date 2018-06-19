@@ -15,6 +15,10 @@ export default withUserData(class StateManager extends React.Component {
             runnerLoaded: false
         };
 
+        if(this.state.instance){
+            this.loadRunner();
+        }
+
         games.refreshInstance(props.match.params.instanceId)
     }
 
@@ -37,12 +41,7 @@ export default withUserData(class StateManager extends React.Component {
                 this.joinGame();
             }
 
-            this.setState({runnerLoaded: false});
-            let info = this.state.instance.game_info;
-            gamesList.loadGame(info.name, info.version).then((runner) => {
-                this.runner = runner;
-                this.setState({runnerLoaded: true});
-            });
+            this.loadRunner()
         }
     }
 
@@ -90,6 +89,15 @@ export default withUserData(class StateManager extends React.Component {
 
     startGame(){
         games.startGame(this.state.instance.id);
+    }
+
+    loadRunner(){
+        this.setState({runnerLoaded: false});
+        let info = this.state.instance.game_info;
+        gamesList.loadGame(info.name, info.version).then((runner) => {
+            this.runner = runner;
+            this.setState({runnerLoaded: true});
+        });
     }
 
     render(){
