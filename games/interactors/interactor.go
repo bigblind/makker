@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 	"github.com/bigblind/makker/config"
+	"github.com/bigblind/makker/logging"
 )
 
 var Interactor GamesInteractor
@@ -66,14 +67,16 @@ func initChannels() {
 type GamesInteractor struct {
 	store games.GameStore
 	cp    channels.ChannelProvider
+	logger logging.StructuredLogger
 }
 
 func NewInteractor() GamesInteractor {
 	var inter GamesInteractor
-	err := di.Graph.Invoke(func(gs games.GameStore, cp channels.ChannelProvider) {
+	err := di.Graph.Invoke(func(gs games.GameStore, cp channels.ChannelProvider, sl logging.StructuredLogger) {
 		inter = GamesInteractor{
 			gs,
 			cp,
+			sl,
 		}
 	})
 
@@ -166,6 +169,8 @@ func (inter GamesInteractor) StartGame(ctx context.Context, instanceId, userId s
 	inter.EmitMetaState(ctx, inst)
 	inter.EmitLobby(ctx, "update", inst.Id)
 	inter.emitGameState(ctx, inst)
+
+	inter.logger.WithField("instance", inst).Debugf(ctx, "Started game")
 
 	return nil
 }
