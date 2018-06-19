@@ -50,7 +50,14 @@ export default withUserData(class StateManager extends React.Component {
             }
 
             this.publicChannelConnection = this.state.instance.public_channel;
-            c.subscribe(this.publicChannelConnection);
+            let chan = c.subscribe(this.publicChannelConnection);
+            chan.bind("state", (state) => {
+                console.log("received shared state", state);
+                this.setState({instance: {...this.state.instance, shnared_state: state}})
+            });
+            chan.bind("public_state", (state) => {
+                console.log("Received pubnlic state", state);
+            });
         });
     }
 
@@ -62,7 +69,11 @@ export default withUserData(class StateManager extends React.Component {
                 }
 
                 this.privateChannelConnection = this.state.instance.private_channel;
-                c.subscribe(this.privateChannelConnection);
+                let chan = c.subscribe(this.privateChannelConnection);
+                chan.bind("private_state", (state) => {
+                    console.log("received private state", state);
+                    this.setState({instance: {...this.state.instance, private_state: state}})
+                });
             };
         });
     }
