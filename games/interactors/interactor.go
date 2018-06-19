@@ -313,6 +313,7 @@ type instanceResponsePlayer struct {
 	UserId string `json:"user_id"`
 	Name   string `json:"name"`
 	Score  int32  `json:"score"`
+	PublicState interface{} `json:"public_state"`
 }
 
 type instanceResponse struct {
@@ -323,6 +324,9 @@ type instanceResponse struct {
 	Players  []instanceResponsePlayer `json:"players"`
 	Admin	 string					  `json:"admin"`
 
+	SharedState	   interface{}		  `json:"shared_state"`
+	PrivateState   interface{}		  `json:"private_state"`
+
 	PublicChannel  string `json:"public_channel"`
 	PrivateChannel string `json:"private_channel"`
 }
@@ -330,11 +334,18 @@ type instanceResponse struct {
 func instanceToResponse(i *games.GameInstance, uid string, cp channels.ChannelProvider) instanceResponse {
 	chanIds := i.Channels(uid)
 	ps := make([]instanceResponsePlayer, len(i.State.Players))
+
+	var privateState interface{}
 	for j, p := range i.State.Players {
 		ps[j] = instanceResponsePlayer{
 			UserId: p.UserId,
 			Name:   p.UserId,
 			Score:  p.Score,
+			PublicState: p.PublicState,
+		}
+
+		if(p.UserId == uid){
+			privateState = p.PrivateState
 		}
 	}
 
@@ -345,6 +356,9 @@ func instanceToResponse(i *games.GameInstance, uid string, cp channels.ChannelPr
 		GameInfo: i.Game().Info(),
 		State:    i.MetaState,
 		Players:  ps,
+
+		SharedState:	i.State.SharedState,
+		PrivateState:   privateState,
 
 		PublicChannel:  cp.NewChannel(nil, "games", chanIds.Public, true).ClientId(),
 		PrivateChannel: cp.NewChannel(nil, "games", chanIds.Private, false).ClientId(),
