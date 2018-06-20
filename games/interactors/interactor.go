@@ -67,12 +67,12 @@ func initChannels() {
 type GamesInteractor struct {
 	store games.GameStore
 	cp    channels.ChannelProvider
-	logger logging.StructuredLogger
+	logger *logging.StructuredLogger
 }
 
 func NewInteractor() GamesInteractor {
 	var inter GamesInteractor
-	err := di.Graph.Invoke(func(gs games.GameStore, cp channels.ChannelProvider, sl logging.StructuredLogger) {
+	err := di.Graph.Invoke(func(gs games.GameStore, cp channels.ChannelProvider, sl *logging.StructuredLogger) {
 		inter = GamesInteractor{
 			gs,
 			cp,
@@ -86,7 +86,6 @@ func NewInteractor() GamesInteractor {
 
 	return inter
 }
-
 func (inter GamesInteractor) CreateInstance(ctx context.Context, gameName, userId string) (instanceResponse, error) {
 	g, err := games.Registry.GetGameLatestVersion(gameName)
 
