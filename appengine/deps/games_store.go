@@ -75,9 +75,9 @@ func (ent *gameInstanceEntity) toInstance(key *datastore.Key) *games.GameInstanc
 		players[i] = games.PlayerState{
 			UserId: p.UserId,
 			Score:  p.Score,
+			PrivateState: gobDecode(p.PrivateState, info.PrivateStateType),
+			PublicState: gobDecode(p.PublicState, info.PublicStateType),
 		}
-		gobDecode(&players[i].PrivateState, p.PrivateState, info.PrivateStateType)
-		gobDecode(&players[i].PublicState, p.PublicState, info.PublicStateType)
 	}
 
 	i := games.GameInstance{
@@ -87,6 +87,7 @@ func (ent *gameInstanceEntity) toInstance(key *datastore.Key) *games.GameInstanc
 		GameVersion: ent.GameVersion,
 		State: games.GameState{
 			Players: players,
+			SharedState: gobDecode(ent.State.SharedState, info.SharedStateType),
 		},
 		AdminUserId: ent.AdminUserId,
 		MetaState:   games.MetaState(ent.MetaState),
@@ -94,7 +95,6 @@ func (ent *gameInstanceEntity) toInstance(key *datastore.Key) *games.GameInstanc
 
 	//TODO: implement move type decoding
 	// gobDecode(&i.Moves, ent.Moves)
-	gobDecode(&i.State.SharedState, ent.State.SharedState, info.SharedStateType)
 	return &i
 }
 
@@ -228,7 +228,7 @@ func gobEncode(v interface{}) []byte {
 	return buf.Bytes()
 }
 
-func gobDecode(ptr interface{}, data []byte, typ interface{}) error {
+func gobDecode(data []byte, typ interface{}) (interface{}) {
 	buf := bytes.NewBuffer(data)
 	dec := gob.NewDecoder(buf)
 
@@ -237,21 +237,16 @@ func gobDecode(ptr interface{}, data []byte, typ interface{}) error {
 	if typ == nil {
 		return nil
 	}
+
 	val := reflect.New(reflect.TypeOf(typ))
 
 	err := dec.DecodeValue(val)
 	// DecodeValue will return io.EOF when it has no more objects to decode.
 	// And since we're only encoding one object per []byte, it'll always return io.EOF, unless
 	// something went wrong.
-	if err != io.EOF {
-		return err
+	if err != nil && err != io.EOF {
+		panic(err)
 	}
 
-	// get a reflect.Value from our pointer
-	// e take its Elem(), because you can only Set() the
-	// pointer's value, not the pointer itself. It's similar to how you'd
-	// dereference a pointer when changing the underlying value.
-	ptrval := reflect.ValueOf(ptr).Elem()
-	ptrval.Set(val)
-	return nil
+	return val.Interface()
 }
