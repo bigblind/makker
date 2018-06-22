@@ -66,10 +66,10 @@ type Move struct {
 type Game interface {
 	Info() GameInfo
 
-	InitializeState(state *GameState)
-	HandleUpdate(g *GameState, m Move) error
-	CanPlayerMove(playerIndex int, g *GameState) bool
-	IsGameOver(g *GameState) bool
+	InitializeState(ctx context.Context, state *GameState)
+	HandleUpdate(ctx context.Context, g *GameState, m Move) error
+	CanPlayerMove(ctx context.Context, playerIndex int, g *GameState) bool
+	IsGameOver(ctx context.Context, g *GameState) bool
 }
 
 type GameInstance struct {

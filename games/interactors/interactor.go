@@ -158,7 +158,7 @@ func (inter GamesInteractor) StartGame(ctx context.Context, instanceId, userId s
 
 	inst.ShufflePlayers()
 	inst.MetaState = games.InProgress
-	inst.Game().InitializeState(&inst.State)
+	inst.Game().InitializeState(ctx, &inst.State)
 
 	err = inter.store.SaveInstance(ctx, inst)
 	if err != nil {
@@ -201,7 +201,7 @@ func (inter GamesInteractor) MakeMove(ctx context.Context, instanceId, userId st
 
 	game := inst.Game()
 
-	if !game.CanPlayerMove(int(idx), &inst.State) {
+	if !game.CanPlayerMove(ctx, int(idx), &inst.State) {
 		return instanceToResponse(inst, userId, inter.cp), fmt.Errorf("you can't make a move right now")
 	}
 
@@ -211,14 +211,14 @@ func (inter GamesInteractor) MakeMove(ctx context.Context, instanceId, userId st
 		Time:   time.Now(),
 	}
 
-	err = game.HandleUpdate(&inst.State, move)
+	err = game.HandleUpdate(ctx, &inst.State, move)
 	if err != nil {
 		return instanceToResponse(inst, userId, inter.cp), err
 	}
 
 	inst.Moves = append(inst.Moves, move)
 
-	if game.IsGameOver(&inst.State) {
+	if game.IsGameOver(ctx, &inst.State) {
 		inst.MetaState = games.GameOver
 	}
 

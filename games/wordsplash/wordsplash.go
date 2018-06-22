@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/bigblind/makker/games"
 	"time"
+	"context"
 )
 
 type wordSplash struct{}
@@ -37,7 +38,7 @@ func (wordSplash) Info() games.GameInfo {
 	}
 }
 
-func (wordSplash) InitializeState(state *games.GameState) {
+func (wordSplash) InitializeState(ctx context.Context, state *games.GameState) {
 	state.SharedState = gameState{
 		Round:            0,
 		Letters:          "",
@@ -48,7 +49,7 @@ func (wordSplash) InitializeState(state *games.GameState) {
 	}
 }
 
-func (wordSplash) HandleUpdate(g *games.GameState, m games.Move) error {
+func (wordSplash) HandleUpdate(ctx context.Context, g *games.GameState, m games.Move) error {
 	state := (g.SharedState.(gameState))
 	np := len(g.Players)
 
@@ -115,14 +116,14 @@ func all(bs []bool) bool {
 	return true
 }
 
-func (wordSplash) CanPlayerMove(playerIndex int, g *games.GameState) bool {
+func (wordSplash) CanPlayerMove(ctx context.Context, playerIndex int, g *games.GameState) bool {
 	if g.SharedState.(gameState).Stage == "picking" {
 		return playerIndex == g.SharedState.(gameState).Round%len(g.Players)
 	}
 	return !g.SharedState.(gameState).Ready[playerIndex]
 }
 
-func (wordSplash) IsGameOver(g *games.GameState) bool {
+func (wordSplash) IsGameOver(ctx context.Context, g *games.GameState) bool {
 	return g.SharedState.(gameState).Round == len(g.Players)*2
 }
 
