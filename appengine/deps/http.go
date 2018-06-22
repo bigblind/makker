@@ -8,7 +8,7 @@ import (
 )
 
 func init() {
-	di.Graph.Provide(func() func(ctx context.Context) *http.Client {
+	di.Graph.Provide(func() func(context.Context) *http.Client {
 		return func(ctx context.Context) *http.Client {
 			return urlfetch.Client(ctx)
 		}

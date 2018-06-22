@@ -5,9 +5,13 @@ import (
 	"github.com/bigblind/makker/games"
 	"time"
 	"context"
+	"net/http"
+	"github.com/bigblind/makker/di"
 )
 
-type wordSplash struct{}
+type wordSplash struct{
+	clientConstructor func(ctx context.Context) *http.Client
+}
 
 type gameState struct {
 	Round            int       `json:"round"`
@@ -49,7 +53,7 @@ func (wordSplash) InitializeState(ctx context.Context, state *games.GameState) {
 	}
 }
 
-func (wordSplash) HandleUpdate(ctx context.Context, g *games.GameState, m games.Move) error {
+func (ws wordSplash) HandleUpdate(ctx context.Context, g *games.GameState, m games.Move) error {
 	state := (g.SharedState.(gameState))
 	np := len(g.Players)
 
@@ -75,7 +79,7 @@ func (wordSplash) HandleUpdate(ctx context.Context, g *games.GameState, m games.
 
 	if state.Stage == "game" {
 		if !state.Ready[m.Player] {
-			exists := wordExists(action)
+			exists := wordExists(action, ws.clientConstructor(ctx))
 			g.Players[m.Player].PrivateState = privateState{
 				Submission: action,
 				Exists:     exists,
@@ -128,5 +132,7 @@ func (wordSplash) IsGameOver(ctx context.Context, g *games.GameState) bool {
 }
 
 func init() {
-	games.Registry.Register(wordSplash{})
+	di.Graph.Invoke(func(clientConstructor func(ctx context.Context) *http.Client) {
+		games.Registry.Register(wordSplash{clientConstructor})
+	})
 }
