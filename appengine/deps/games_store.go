@@ -8,6 +8,7 @@ import (
 	"github.com/bigblind/makker/games"
 	"google.golang.org/appengine/datastore"
 	"time"
+	"github.com/bigblind/makker/logging"
 )
 
 func init() {
@@ -91,14 +92,16 @@ func (ent *gameInstanceEntity) toInstance(key *datastore.Key) *games.GameInstanc
 }
 
 type appEngineGameStore struct {
+	logger *logging.StructuredLogger
 }
 
-func NewGameStore() games.GameStore {
-	return appEngineGameStore{}
+func NewGameStore(logger *logging.StructuredLogger) games.GameStore {
+	return appEngineGameStore{logger}
 }
 
 func (gs appEngineGameStore) SaveInstance(ctx context.Context, instance *games.GameInstance) error {
 	ent := entityFromInstance(instance)
+	gs.logger.Debugf(ctx, "Created entity: %#v\ninstance:%#v", ent, instance)
 
 	var key *datastore.Key
 	var err error
@@ -131,8 +134,11 @@ func (gs appEngineGameStore) GetInstanceById(ctx context.Context, id string) (*g
 	if err != nil {
 		return nil, err
 	}
+	gs.logger.Debugf(ctx, "Loaded entity: %#v", ent)
 
-	return ent.toInstance(key), nil
+	inst := ent.toInstance(key)
+	gs.logger.Debugf(ctx, "decoded entity: %#v", inst)
+	return inst, nil
 }
 
 func (gs appEngineGameStore) GetInstancesByGame(ctx context.Context, gameName string, state ...games.MetaState) (*[]games.GameInstance, error) {
