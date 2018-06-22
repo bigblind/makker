@@ -119,7 +119,7 @@ export default withUserData(class StateManager extends React.Component {
                 return "Loading..."
             }
 
-            return <this.runner.RunnerView instance={this.state.instance} />;
+            return <this.runner.RunnerView instance={this.state.instance} user={this.props.user} />;
         }
     }
 })
