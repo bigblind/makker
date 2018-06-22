@@ -24,8 +24,8 @@ type gameState struct {
 }
 
 type privateState struct {
-	Submission string
-	Exists     bool
+	Submission string	`json:"submission"`
+	Exists     bool		`json:"exists"`
 }
 
 func (wordSplash) Info() games.GameInfo {
