@@ -30,6 +30,10 @@ func (wordSplash) Info() games.GameInfo {
 		MinPlayers:       2,
 		MaxPlayers:       4,
 		LoseOnDisconnect: true,
+
+		SharedStateType: gameState{},
+		PrivateStateType: privateState{},
+		PublicStateType: nil,
 	}
 }
 

@@ -25,6 +25,15 @@ type GameInfo struct {
 
 	// Whether the player automatically loses the game when they disconnect
 	LoseOnDisconnect bool `json:"lose_on_disconnect"`
+
+	// A value of the type used for shared state
+	SharedStateType interface{} `json:"-"`
+
+	// A value of the type used for public state
+	PublicStateType interface{} `json:"-"`
+	
+	// A value of the type used for private state
+	PrivateStateType interface{} `json:"-"`
 }
 
 type PlayerState struct {

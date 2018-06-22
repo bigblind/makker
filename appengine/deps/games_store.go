@@ -9,6 +9,8 @@ import (
 	"google.golang.org/appengine/datastore"
 	"time"
 	"github.com/bigblind/makker/logging"
+	"reflect"
+	"io"
 )
 
 func init() {
@@ -66,15 +68,18 @@ func entityFromInstance(i *games.GameInstance) *gameInstanceEntity {
 }
 
 func (ent *gameInstanceEntity) toInstance(key *datastore.Key) *games.GameInstance {
+	game, _ := games.Registry.GetGame(ent.GameName, ent.GameVersion)
+	info := game.Info()
 	players := make([]games.PlayerState, len(ent.State.Players))
 	for i, p := range ent.State.Players {
 		players[i] = games.PlayerState{
 			UserId: p.UserId,
 			Score:  p.Score,
 		}
-		gobDecode(&players[i].PrivateState, p.PrivateState)
-		gobDecode(&players[i].PublicState, p.PublicState)
+		gobDecode(&players[i].PrivateState, p.PrivateState, info.PrivateStateType)
+		gobDecode(&players[i].PublicState, p.PublicState, info.PublicStateType)
 	}
+
 	i := games.GameInstance{
 		Id:          key.Encode(),
 		CreatedAt:	 ent.CreatedAt,
@@ -86,9 +91,31 @@ func (ent *gameInstanceEntity) toInstance(key *datastore.Key) *games.GameInstanc
 		AdminUserId: ent.AdminUserId,
 		MetaState:   games.MetaState(ent.MetaState),
 	}
-	gobDecode(&i.Moves, ent.Moves)
-	gobDecode(&i.State.SharedState, ent.State.SharedState)
+
+	//TODO: implement move type decoding
+	// gobDecode(&i.Moves, ent.Moves)
+	gobDecode(&i.State.SharedState, ent.State.SharedState, info.SharedStateType)
 	return &i
+}
+
+func (ent *gameInstanceEntity) registerTypes()  {
+	game, err := games.Registry.GetGame(ent.GameName, ent.GameVersion)
+	if err != nil {
+		panic(err)
+	}
+
+	info := game.Info()
+	if info.PublicStateType != nil {
+		gob.Register(info.PublicStateType)
+	}
+
+	if info.PrivateStateType != nil {
+		gob.Register(info.PrivateStateType)
+	}
+
+	if info.SharedStateType != nil {
+		gob.Register(info.SharedStateType)
+	}
 }
 
 type appEngineGameStore struct {
@@ -201,8 +228,30 @@ func gobEncode(v interface{}) []byte {
 	return buf.Bytes()
 }
 
-func gobDecode(ptr interface{}, data []byte) error {
+func gobDecode(ptr interface{}, data []byte, typ interface{}) error {
 	buf := bytes.NewBuffer(data)
 	dec := gob.NewDecoder(buf)
-	return dec.Decode(ptr)
+
+	// If the game has no type for a particular state, they don't use it,
+	// so e don't need to decode anything
+	if typ == nil {
+		return nil
+	}
+	val := reflect.New(reflect.TypeOf(typ))
+
+	err := dec.DecodeValue(val)
+	// DecodeValue will return io.EOF when it has no more objects to decode.
+	// And since we're only encoding one object per []byte, it'll always return io.EOF, unless
+	// something went wrong.
+	if err != io.EOF {
+		return err
+	}
+
+	// get a reflect.Value from our pointer
+	// e take its Elem(), because you can only Set() the
+	// pointer's value, not the pointer itself. It's similar to how you'd
+	// dereference a pointer when changing the underlying value.
+	ptrval := reflect.ValueOf(ptr).Elem()
+	ptrval.Set(val)
+	return nil
 }
